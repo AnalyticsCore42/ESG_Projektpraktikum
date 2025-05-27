@@ -1,0 +1,13 @@
+# Byte-compiled / optimized files
+__pycache__/
+
+*.egg-info/
+
+.venv/
+.vscode/
+.cursor/
+
+# Project-specific data
+*.csv
+!data/*.csv  # Keep data CSV files
+output/

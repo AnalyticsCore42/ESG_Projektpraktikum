@@ -1,0 +1,104 @@
+GBM Industry-Segmented Emissions Prediction Results
+============================================================
+
+General Model Metrics:
+  - rmse: 13.8668
+  - r2: 0.1252
+  - pearson: 0.3544
+
+Industry-Specific Models:
+
+Manufacturing - Tech:
+  - rmse: 12.8774
+  - r2: 0.1122
+  - pearson: 0.3428
+
+Financial:
+  - rmse: 13.6254
+  - r2: 0.1152
+  - pearson: 0.3422
+
+Manufacturing - Heavy:
+  - rmse: 10.6702
+  - r2: 0.1613
+  - pearson: 0.4084
+
+Information & Communication:
+  - rmse: 14.0973
+  - r2: 0.2259
+  - pearson: 0.4807
+
+Retail:
+  - rmse: 14.0558
+  - r2: -0.0201
+  - pearson: 0.1393
+
+Professional Services:
+  - rmse: 12.2676
+  - r2: 0.3184
+  - pearson: 0.5856
+
+Real Estate:
+  - rmse: 14.9658
+  - r2: -0.0180
+  - pearson: 0.2178
+
+Transportation:
+  - rmse: 11.1030
+  - r2: 0.1851
+  - pearson: 0.4664
+
+Energy:
+  - rmse: 12.8880
+  - r2: 0.0425
+  - pearson: 0.2970
+
+Construction:
+  - rmse: 16.0480
+  - r2: 0.0515
+  - pearson: 0.2731
+
+Food & Beverage:
+  - rmse: 8.0526
+  - r2: 0.0241
+  - pearson: 0.2486
+
+Textile & Paper:
+  - rmse: 13.8846
+  - r2: 0.0443
+  - pearson: 0.2243
+
+Administrative Services:
+  - rmse: 23.9897
+  - r2: -0.1562
+  - pearson: -0.0020
+
+Healthcare:
+  - rmse: 8.3807
+  - r2: 0.1792
+  - pearson: 0.4782
+
+Hospitality:
+  - rmse: 8.1825
+  - r2: -0.0002
+  - pearson: 0.1331
+
+Other:
+  - rmse: 13.1111
+  - r2: 0.0449
+  - pearson: 0.2213
+
+Education:
+  - rmse: 4.8968
+  - r2: -0.0636
+  - pearson: 0.3968
+
+Arts & Entertainment:
+  - rmse: 10.1824
+  - r2: 0.2028
+  - pearson: 0.4665
+
+Water & Waste:
+  - rmse: 8.6949
+  - r2: 0.0708
+  - pearson: 0.2998

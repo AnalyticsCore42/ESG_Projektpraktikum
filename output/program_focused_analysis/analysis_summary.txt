@@ -1,0 +1,31 @@
+Program Focused Emissions Prediction Model (Program-only without controls)
+============================================================
+
+Model Performance:
+RMSE: 25.2121
+R²: 0.0154
+Pearson Correlation: 0.1247
+
+Top 10 Features by Importance:
+1. program_score_by_size: 692891.49
+2. target_by_emissions_intensity: 678604.87
+3. program_score_vs_industry: 435592.70
+4. target_vs_industry_avg: 391836.12
+5. SOURCE_EXEC_BODY_ENV_ISSUES: 257687.97
+6. TARGET_CARBON_PROGRESS_PCT: 257481.06
+7. CBN_TARGET_REDUC_PCT: 252546.51
+8. CBN_PROG_REDU_CARB_CORE_OP_SOURCE: 218838.48
+9. CBN_PROG_LOW_CARB_RENEW_SOURCE: 206518.45
+10. target_reduction_per_year: 176926.40
+
+Program Feature Analysis:
+Rank 1: program_score_by_size (Importance: 692891.49)
+Rank 2: target_by_emissions_intensity (Importance: 678604.87)
+Rank 3: program_score_vs_industry (Importance: 435592.70)
+Rank 4: target_vs_industry_avg (Importance: 391836.12)
+Rank 5: SOURCE_EXEC_BODY_ENV_ISSUES (Importance: 257687.97)
+Rank 6: TARGET_CARBON_PROGRESS_PCT (Importance: 257481.06)
+Rank 7: CBN_TARGET_REDUC_PCT (Importance: 252546.51)
+Rank 8: CBN_PROG_REDU_CARB_CORE_OP_SOURCE (Importance: 218838.48)
+Rank 9: CBN_PROG_LOW_CARB_RENEW_SOURCE (Importance: 206518.45)
+Rank 10: target_reduction_per_year (Importance: 176926.40)

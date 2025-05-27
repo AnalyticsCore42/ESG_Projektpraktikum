@@ -1,0 +1,404 @@
+# Collaborative filtering
+
+URL: https://docs.fast.ai/collab.html
+
+Collaborative filtering â fastai
+fastai
+TabularCollaborative filtering
+Welcome to fastai
+Quick start
+Tutorials
+Tutorials
+Beginner
+Computer vision intro
+Text transfer learning
+Tabular training
+Collaborative filtering tutorial
+Intermediate
+Data block tutorial
+Training Imagenette
+Mid-tier data API - Pets
+Chest X-ray model
+Transformers
+Wikitext data tutorial
+Notebook distributed training
+Advanced
+Custom transforms
+Custom new task - siamese
+Image sequences
+Migrating from Other Libs
+Pure PyTorch to fastai
+Pytorch to fastai details
+Ignite with fastai
+Lightning with fastai
+Catalyst with fastai
+Training
+Learner, Metrics, Callbacks
+Optimizers
+Metrics
+Interpretation of Predictions
+Distributed training
+Mixed precision training
+Channels Last training
+Callbacks
+Callbacks
+Model hooks
+Progress and logging
+Hyperparam schedule
+Data Callbacks
+MixUp and Friends
+Predictions callbacks
+Callback for RNN training
+Tracking callbacks
+Training callbacks
+Data
+Data block
+Data core
+DataLoaders
+External data
+Data transformations
+Core
+Torch Core
+Layers
+Loss Functions
+Vision
+Core vision
+Vision data
+Vision augmentation
+Vision learner
+Models
+XResnet
+Dynamic UNet
+GAN
+Vision utils
+Vision widgets
+Text
+Text core
+Text data
+Text learner
+Models
+Core text modules
+AWD-LSTM
+Tabular
+Tabular core
+Tabular data
+Tabular learner
+Tabular model
+Collaborative filtering
+Medical
+Medical Imaging
+Medical Text
+Integrations
+Wandb
+Captum
+Comet.ml
+Tensorboard
+Hugging Face Hub
+fastai Development
+Pull requests made easy
+git Notes
+fastai Abbreviation Guide
+fastai coding style
+Working with GPU
+Notes For Developers
+On this page
+Gather the data
+TabularCollab
+CollabDataLoaders
+CollabDataLoaders.from_df
+CollabDataLoaders.from_csv
+Models
+EmbeddingDotBias
+EmbeddingDotBias.from_classes
+EmbeddingDotBias.weight
+EmbeddingDotBias.bias
+EmbeddingNN
+Create a Learner
+collab_learner
+Report an issueOther FormatsCommonMark
+TabularCollaborative filtering
+Collaborative filtering
+Tools to quickly get the data and train models suitable for collaborative filtering
+This module contains all the high-level functions you need in a collaborative filtering application to assemble your data, get a model and train it with a Learner. We will go other those in order but you can also check the collaborative filtering tutorial.
+Gather the data
+source
+TabularCollab
+TabularCollab (df, procs=None, cat_names=None, cont_names=None,
+y_names=None, y_block=None, splits=None, do_setup=True,
+device=None, inplace=False, reduce_memory=True)
+Instance of TabularPandas suitable for collaborative filtering (with no continuous variable)
+This is just to use the internal of the tabular application, donât worry about it.
+source
+CollabDataLoaders
+CollabDataLoaders (*loaders, path:str|pathlib.Path='.', device=None)
+Base DataLoaders for collaborative filtering.
+This class should not be used directly, one of the factory methods should be preferred instead. All those factory methods accept as arguments:
+valid_pct: the random percentage of the dataset to set aside for validation (with an optional seed)
+user_name: the name of the column containing the user (defaults to the first column)
+item_name: the name of the column containing the item (defaults to the second column)
+rating_name: the name of the column containing the rating (defaults to the third column)
+path: the folder where to work
+bs: the batch size
+val_bs: the batch size for the validation DataLoader (defaults to bs)
+shuffle_train: if we shuffle the training DataLoader or not
+device: the PyTorch device to use (defaults to default_device())
+source
+CollabDataLoaders.from_df
+CollabDataLoaders.from_df (ratings, valid_pct=0.2, user_name=None,
+item_name=None, rating_name=None, seed=None,
+path='.', bs:int=64, val_bs:int=None,
+shuffle:bool=True, device=None)
+Create a DataLoaders suitable for collaborative filtering from ratings.
+Type
+Default
+Details
+ratings
+valid_pct
+float
+0.2
+user_name
+NoneType
+None
+item_name
+NoneType
+None
+rating_name
+NoneType
+None
+seed
+NoneType
+None
+path
+str | pathlib.Path
+.
+Path to put in DataLoaders
+bs
+int
+64
+Size of batch
+val_bs
+int
+None
+Size of batch for validation DataLoader
+shuffle
+bool
+True
+Whether to shuffle data
+device
+NoneType
+None
+Device to put DataLoaders
+Letâs see how this works on an example:
+path = untar_data(URLs.ML_SAMPLE)
+ratings = pd.read_csv(path/'ratings.csv')
+ratings.head()
+110.72% [57344/51790 00:00<00:00]
+userId
+movieId
+rating
+timestamp
+0
+73
+1097
+4.0
+1255504951
+1
+561
+924
+3.5
+1172695223
+2
+157
+260
+3.5
+1291598691
+3
+358
+1210
+5.0
+957481884
+4
+130
+316
+2.0
+1138999234
+dls = CollabDataLoaders.from_df(ratings, bs=64)
+dls.show_batch()
+userId
+movieId
+rating
+0
+580
+736
+2.0
+1
+509
+356
+4.0
+2
+105
+480
+3.0
+3
+518
+595
+5.0
+4
+111
+527
+4.0
+5
+384
+589
+5.0
+6
+607
+2918
+3.5
+7
+460
+1291
+4.0
+8
+268
+1270
+5.0
+9
+56
+586
+4.0
+source
+CollabDataLoaders.from_csv
+CollabDataLoaders.from_csv (csv, valid_pct=0.2, user_name=None,
+item_name=None, rating_name=None, seed=None,
+path='.', bs:int=64, val_bs:int=None,
+shuffle:bool=True, device=None)
+Create a DataLoaders suitable for collaborative filtering from csv.
+Type
+Default
+Details
+csv
+valid_pct
+float
+0.2
+user_name
+NoneType
+None
+item_name
+NoneType
+None
+rating_name
+NoneType
+None
+seed
+NoneType
+None
+path
+str | pathlib.Path
+.
+Path to put in DataLoaders
+bs
+int
+64
+Size of batch
+val_bs
+int
+None
+Size of batch for validation DataLoader
+shuffle
+bool
+True
+Whether to shuffle data
+device
+NoneType
+None
+Device to put DataLoaders
+dls = CollabDataLoaders.from_csv(path/'ratings.csv', bs=64)
+Models
+fastai provides two kinds of models for collaborative filtering: a dot-product model and a neural net.
+source
+EmbeddingDotBias
+EmbeddingDotBias (n_factors, n_users, n_items, y_range=None)
+Base dot model for collaborative filtering.
+The model is built with n_factors (the length of the internal vectors), n_users and n_items. For a given user and item, it grabs the corresponding weights and bias and returns
+torch.dot(user_w, item_w) + user_b + item_b
+Optionally, if y_range is passed, it applies a SigmoidRange to that result.
+x,y = dls.one_batch()
+model = EmbeddingDotBias(50, len(dls.classes['userId']), len(dls.classes['movieId']), y_range=(0,5)
+).to(x.device)
+out = model(x)
+assert (0 <= out).all() and (out <= 5).all()
+source
+EmbeddingDotBias.from_classes
+EmbeddingDotBias.from_classes (n_factors, classes, user=None, item=None,
+y_range=None)
+Build a model with n_factors by inferring n_users and n_items from classes
+y_range is passed to the main init. user and item are the names of the keys for users and items in classes (default to the first and second key respectively). classes is expected to be a dictionary key to list of categories like the result of dls.classes in a CollabDataLoaders:
+dls.classes
+{'userId': ['#na#', 15, 17, 19, 23, 30, 48, 56, 73, 77, 78, 88, 95, 102, 105, 111, 119, 128, 130, 134, 150, 157, 165, 176, 187, 195, 199, 212, 213, 220, 232, 239, 242, 243, 247, 262, 268, 285, 292, 294, 299, 306, 311, 312, 313, 346, 353, 355, 358, 380, 382, 384, 387, 388, 402, 405, 407, 423, 427, 430, 431, 439, 452, 457, 460, 461, 463, 468, 472, 475, 480, 481, 505, 509, 514, 518, 529, 534, 537, 544, 547, 561, 564, 574, 575, 577, 580, 585, 587, 596, 598, 605, 607, 608, 615, 624, 648, 652, 654, 664, 665],
+'movieId': ['#na#', 1, 10, 32, 34, 39, 47, 50, 110, 150, 153, 165, 231, 253, 260, 293, 296, 316, 318, 344, 356, 357, 364, 367, 377, 380, 457, 480, 500, 527, 539, 541, 586, 587, 588, 589, 590, 592, 593, 595, 597, 608, 648, 733, 736, 778, 780, 858, 924, 1036, 1073, 1089, 1097, 1136, 1193, 1196, 1197, 1198, 1200, 1206, 1210, 1213, 1214, 1221, 1240, 1265, 1270, 1291, 1580, 1617, 1682, 1704, 1721, 1732, 1923, 2028, 2396, 2571, 2628, 2716, 2762, 2858, 2918, 2959, 2997, 3114, 3578, 3793, 4226, 4306, 4886, 4963, 4973, 4993, 5349, 5952, 6377, 6539, 7153, 8961, 58559]}
+Letâs see how it can be used in practice:
+model = EmbeddingDotBias.from_classes(50, dls.classes,
+y_range=(0,5)
+).to(x.device)
+out = model(x)
+assert (0 <= out).all() and (out <= 5).all()
+Two convenience methods are added to easily access the weights and bias when a model is created with EmbeddingDotBias.from_classes:
+source
+EmbeddingDotBias.weight
+EmbeddingDotBias.weight (arr, is_item=True)
+Weight for item or user (based on is_item) for all in arr
+The elements of arr are expected to be class names (which is why the model needs to be created with EmbeddingDotBias.from_classes)
+mov = dls.classes['movieId'][42]
+w = model.weight([mov])
+test_eq(w, model.i_weight(tensor([42])))
+source
+EmbeddingDotBias.bias
+EmbeddingDotBias.bias (arr, is_item=True)
+Bias for item or user (based on is_item) for all in arr
+The elements of arr are expected to be class names (which is why the model needs to be created with EmbeddingDotBias.from_classes)
+mov = dls.classes['movieId'][42]
+b = model.bias([mov])
+test_eq(b, model.i_bias(tensor([42])))
+source
+EmbeddingNN
+EmbeddingNN (emb_szs, layers, ps:float|MutableSequence=None,
+embed_p:float=0.0, y_range=None, use_bn:bool=True,
+bn_final:bool=False, bn_cont:bool=True,
+act_cls=ReLU(inplace=True), lin_first:bool=True)
+Subclass TabularModel to create a NN suitable for collaborative filtering.
+emb_szs should be a list of two tuples, one for the users, one for the items, each tuple containing the number of users/items and the corresponding embedding size (the function get_emb_sz can give a good default). All the other arguments are passed to TabularModel.
+emb_szs = get_emb_sz(dls.train_ds, {})
+model = EmbeddingNN(emb_szs, [50], y_range=(0,5)
+).to(x.device)
+out = model(x)
+assert (0 <= out).all() and (out <= 5).all()
+Create a Learner
+The following function lets us quickly create a Learner for collaborative filtering from the data.
+source
+collab_learner
+collab_learner (dls, n_factors=50, use_nn=False, emb_szs=None,
+layers=None, config=None, y_range=None, loss_func=None,
+opt_func:Optimizer|OptimWrapper=<function Adam>,
+lr:float|slice=0.001, splitter:callable=<function
+trainable_params>,
+cbs:Callback|MutableSequence|None=None,
+metrics:callable|MutableSequence|None=None,
+path:str|Path|None=None, model_dir:str|Path='models',
+wd:float|int|None=None, wd_bn_bias:bool=False,
+train_bn:bool=True, moms:tuple=(0.95, 0.85, 0.95),
+default_cbs:bool=True)
+Create a Learner for collaborative filtering on dls.
+If use_nn=False, the model used is an EmbeddingDotBias with n_factors and y_range. Otherwise, itâs a EmbeddingNN for which you can pass emb_szs (will be inferred from the dls with get_emb_sz if you donât provide any), layers (defaults to [n_factors]) y_range, and a config that you can create with tabular_config to customize your model.
+loss_func will default to MSELossFlat and all the other arguments are passed to Learner.
+learn = collab_learner(dls, y_range=(0,5))
+learn.fit_one_cycle(1)
+epoch
+train_loss
+valid_loss
+time
+0
+2.521979
+2.541627
+00:00
+Report an issue

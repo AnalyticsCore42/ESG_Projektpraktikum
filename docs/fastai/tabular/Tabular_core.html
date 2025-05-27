@@ -1,0 +1,3596 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.5.57">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="description" content="Basic function to preprocess tabular data before assembling it in a DataLoaders.">
+
+<title>Tabular core â fastai</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script><script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./images/favicon.ico" rel="icon">
+<script src="site_libs/quarto-html/quarto.js"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" integrity="sha512-c3Nl8+7g4LMSTdrm621y7kf9v3SDPnhxLNhcjFJbKECVnmZHTdo+IRO05sNLTH/D3vA6u1X32ehoLC7WFVdheg==" crossorigin="anonymous"></script>
+
+<script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
+
+
+<link rel="stylesheet" href="styles.css">
+<meta property="og:title" content="Tabular core â fastai">
+<meta property="og:description" content="Basic function to preprocess tabular data before assembling it in a DataLoaders.">
+<meta property="og:image" content="https://docs.fast.ai/images/layered.png">
+<meta property="og:site_name" content="fastai">
+<meta name="twitter:title" content="Tabular core â fastai">
+<meta name="twitter:description" content="Basic function to preprocess tabular data before assembling it in a DataLoaders.">
+<meta name="twitter:image" content="https://docs.fast.ai/images/layered.png">
+<meta name="twitter:creator" content="@jeremyphoward">
+<meta name="twitter:site" content="@fastdotai">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+
+<body class="nav-sidebar floating nav-fixed">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">fastai</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/fastai/fastai"> <i class="bi bi-github" role="img">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-reader-toggle quarto-navigation-tool px-1" onclick="window.quartoToggleReader(); return false;" title="Toggle reader mode">
+  <div class="quarto-reader-toggle-btn">
+  <i class="bi"></i>
+  </div>
+</a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./tabular.core.html">Tabular</a></li><li class="breadcrumb-item"><a href="./tabular.core.html">Tabular core</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Welcome to fastai</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./quick_start.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Quick start</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Tutorials</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tutorials</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false">
+ <span class="menu-text">Beginner</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-2" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-2" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.vision.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Computer vision intro</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Text transfer learning</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.tabular.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tabular training</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.collab.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Collaborative filtering tutorial</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false">
+ <span class="menu-text">Intermediate</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-3" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-3" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.datablock.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data block tutorial</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.imagenette.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Training Imagenette</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.pets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mid-tier data API - Pets</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.medical_imaging.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Chest X-ray model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.transformers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Transformers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.wikitext.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wikitext data tutorial</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.distributed.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Notebook distributed training</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false">
+ <span class="menu-text">Advanced</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-4" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-4" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.albumentations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Custom transforms</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.siamese.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Custom new task - siamese</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tutorial.image_sequence.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Image sequences</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false">
+ <span class="menu-text">Migrating from Other Libs</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-5" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-5" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples/migrating_pytorch.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pure PyTorch to fastai</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples/migrating_pytorch_verbose.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pytorch to fastai details</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples/migrating_ignite.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Ignite with fastai</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples/migrating_lightning.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Lightning with fastai</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./examples/migrating_catalyst.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Catalyst with fastai</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true">
+ <span class="menu-text">Training</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-6" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-6" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./learner.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Learner, Metrics, Callbacks</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./optimizer.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Optimizers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Metrics</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./interpret.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Interpretation of Predictions</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./distributed.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Distributed training</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.fp16.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Mixed precision training</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.channelslast.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Channels Last training</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false">
+ <span class="menu-text">Callbacks</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-7" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-7" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Callbacks</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.hook.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Model hooks</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.progress.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Progress and logging</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.schedule.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Hyperparam schedule</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data Callbacks</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.mixup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">MixUp and Friends</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.preds.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Predictions callbacks</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.rnn.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Callback for RNN training</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.tracker.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tracking callbacks</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.training.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Training callbacks</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true">
+ <span class="menu-text">Data</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-8" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-8" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.block.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data block</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.load.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">DataLoaders</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.external.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">External data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./data.transforms.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Data transformations</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="true">
+ <span class="menu-text">Core</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-9" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-9" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./torch_core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Torch Core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./layers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Layers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./losses.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Loss Functions</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true">
+ <span class="menu-text">Vision</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-10" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-10" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vision.core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Core vision</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vision.data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vision data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vision.augment.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vision augmentation</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vision.learner.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vision learner</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-11" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-11" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vision.models.xresnet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">XResnet</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vision.models.unet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Dynamic UNet</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vision.gan.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">GAN</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vision.utils.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vision utils</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./vision.widgets.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Vision widgets</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="true">
+ <span class="menu-text">Text</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-12" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-12" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./text.core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Text core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./text.data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Text data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./text.learner.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Text learner</span></a>
+  </div>
+</li>
+          <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false">
+ <span class="menu-text">Models</span></a>
+          <a class="sidebar-item-toggle text-start collapsed" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-13" role="navigation" aria-expanded="false" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-13" class="collapse list-unstyled sidebar-section depth2 ">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./text.models.core.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Core text modules</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./text.models.awdlstm.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">AWD-LSTM</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="true">
+ <span class="menu-text">Tabular</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-14" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-14" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tabular.core.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Tabular core</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tabular.data.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tabular data</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tabular.learner.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tabular learner</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./tabular.model.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tabular model</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./collab.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Collaborative filtering</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="true">
+ <span class="menu-text">Medical</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-15" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-15" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./medical.imaging.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Medical Imaging</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./medical.text.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Medical Text</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="true">
+ <span class="menu-text">Integrations</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-16" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-16" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.wandb.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Wandb</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.captum.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Captum</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.comet.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Comet.ml</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./callback.tensorboard.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Tensorboard</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./huggingface.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Hugging Face Hub</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="true">
+ <span class="menu-text">fastai Development</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-17" role="navigation" aria-expanded="true" aria-label="Toggle section">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-17" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./dev-setup.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Pull requests made easy</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./dev/git.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">git Notes</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./dev/abbr.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fastai Abbreviation Guide</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./dev/style.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">fastai coding style</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./dev/gpu.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Working with GPU</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./dev/develop.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Notes For Developers</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#initial-preprocessing" id="toc-initial-preprocessing" class="nav-link active" data-scroll-target="#initial-preprocessing">Initial preprocessing</a>
+  <ul>
+  <li><a href="#make_date" id="toc-make_date" class="nav-link" data-scroll-target="#make_date">make_date</a></li>
+  <li><a href="#add_datepart" id="toc-add_datepart" class="nav-link" data-scroll-target="#add_datepart">add_datepart</a></li>
+  <li><a href="#add_elapsed_times" id="toc-add_elapsed_times" class="nav-link" data-scroll-target="#add_elapsed_times">add_elapsed_times</a></li>
+  <li><a href="#cont_cat_split" id="toc-cont_cat_split" class="nav-link" data-scroll-target="#cont_cat_split">cont_cat_split</a></li>
+  <li><a href="#df_shrink_dtypes" id="toc-df_shrink_dtypes" class="nav-link" data-scroll-target="#df_shrink_dtypes">df_shrink_dtypes</a></li>
+  <li><a href="#df_shrink" id="toc-df_shrink" class="nav-link" data-scroll-target="#df_shrink">df_shrink</a></li>
+  <li><a href="#tabular" id="toc-tabular" class="nav-link" data-scroll-target="#tabular">Tabular</a></li>
+  <li><a href="#tabularpandas" id="toc-tabularpandas" class="nav-link" data-scroll-target="#tabularpandas">TabularPandas</a></li>
+  <li><a href="#tabularproc" id="toc-tabularproc" class="nav-link" data-scroll-target="#tabularproc">TabularProc</a></li>
+  <li><a href="#categorify" id="toc-categorify" class="nav-link" data-scroll-target="#categorify">Categorify</a></li>
+  <li><a href="#fillstrategy" id="toc-fillstrategy" class="nav-link" data-scroll-target="#fillstrategy">FillStrategy</a></li>
+  <li><a href="#fillmissing" id="toc-fillmissing" class="nav-link" data-scroll-target="#fillmissing">FillMissing</a></li>
+  <li><a href="#readtabbatch" id="toc-readtabbatch" class="nav-link" data-scroll-target="#readtabbatch">ReadTabBatch</a></li>
+  <li><a href="#tabdataloader" id="toc-tabdataloader" class="nav-link" data-scroll-target="#tabdataloader">TabDataLoader</a></li>
+  <li><a href="#tabweighteddl" id="toc-tabweighteddl" class="nav-link" data-scroll-target="#tabweighteddl">TabWeightedDL</a></li>
+  </ul></li>
+  <li><a href="#integration-example" id="toc-integration-example" class="nav-link" data-scroll-target="#integration-example">Integration example</a></li>
+  <li><a href="#other-target-types" id="toc-other-target-types" class="nav-link" data-scroll-target="#other-target-types">Other target types</a>
+  <ul>
+  <li><a href="#multi-label-categories" id="toc-multi-label-categories" class="nav-link" data-scroll-target="#multi-label-categories">Multi-label categories</a>
+  <ul class="collapse">
+  <li><a href="#one-hot-encoded-label" id="toc-one-hot-encoded-label" class="nav-link" data-scroll-target="#one-hot-encoded-label">one-hot encoded label</a></li>
+  <li><a href="#not-one-hot-encoded" id="toc-not-one-hot-encoded" class="nav-link" data-scroll-target="#not-one-hot-encoded">Not one-hot encoded</a></li>
+  </ul></li>
+  <li><a href="#regression" id="toc-regression" class="nav-link" data-scroll-target="#regression">Regression</a></li>
+  </ul></li>
+  <li><a href="#not-being-used-now---for-multi-modal" id="toc-not-being-used-now---for-multi-modal" class="nav-link" data-scroll-target="#not-being-used-now---for-multi-modal">Not being used now - for multi-modal</a></li>
+  </ul>
+<div class="toc-actions"><ul><li><a href="https://github.com/fastai/fastai/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div><div class="quarto-alternate-formats"><h2>Other Formats</h2><ul><li><a href="tabular.core.html.md"><i class="bi bi-file-code"></i>CommonMark</a></li></ul></div></nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./tabular.core.html">Tabular</a></li><li class="breadcrumb-item"><a href="./tabular.core.html">Tabular core</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Tabular core</h1>
+</div>
+
+<div>
+  <div class="description">
+    Basic function to preprocess tabular data before assembling it in a <code>DataLoaders</code>.
+  </div>
+</div>
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<!-- WARNING: THIS FILE WAS AUTOGENERATED! DO NOT EDIT! -->
+<section id="initial-preprocessing" class="level2">
+<h2 class="anchored" data-anchor-id="initial-preprocessing">Initial preprocessing</h2>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L19" target="_blank" style="float:right; font-size:smaller">source</a></p>
+<section id="make_date" class="level3">
+<h3 class="anchored" data-anchor-id="make_date">make_date</h3>
+<blockquote class="blockquote">
+<pre><code> make_date (df, date_field)</code></pre>
+</blockquote>
+<p><em>Make sure <code>df[date_field]</code> is of the right date type.</em></p>
+<div id="cell-4" class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">'date'</span>: [<span class="st">'2019-12-04'</span>, <span class="st">'2019-11-29'</span>, <span class="st">'2019-11-15'</span>, <span class="st">'2019-10-24'</span>]})</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>make_date(df, <span class="st">'date'</span>)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>test_eq(df[<span class="st">'date'</span>].dtype, np.dtype(<span class="st">'datetime64[ns]'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L28" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="add_datepart" class="level3">
+<h3 class="anchored" data-anchor-id="add_datepart">add_datepart</h3>
+<blockquote class="blockquote">
+<pre><code> add_datepart (df, field_name, prefix=None, drop=True, time=False)</code></pre>
+</blockquote>
+<p><em>Helper function that adds columns relevant to a date in the column <code>field_name</code> of <code>df</code>.</em></p>
+<p>For example if we have a series of dates we can then generate features such as <code>Year</code>, <code>Month</code>, <code>Day</code>, <code>Dayofweek</code>, <code>Is_month_start</code>, etc as shown below:</p>
+<div id="cell-7" class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">'date'</span>: [<span class="st">'2019-12-04'</span>, <span class="va">None</span>, <span class="st">'2019-11-15'</span>, <span class="st">'2019-10-24'</span>]})</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> add_datepart(df, <span class="st">'date'</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">Year</th>
+<th data-quarto-table-cell-role="th">Month</th>
+<th data-quarto-table-cell-role="th">Week</th>
+<th data-quarto-table-cell-role="th">Day</th>
+<th data-quarto-table-cell-role="th">Dayofweek</th>
+<th data-quarto-table-cell-role="th">Dayofyear</th>
+<th data-quarto-table-cell-role="th">Is_month_end</th>
+<th data-quarto-table-cell-role="th">Is_month_start</th>
+<th data-quarto-table-cell-role="th">Is_quarter_end</th>
+<th data-quarto-table-cell-role="th">Is_quarter_start</th>
+<th data-quarto-table-cell-role="th">Is_year_end</th>
+<th data-quarto-table-cell-role="th">Is_year_start</th>
+<th data-quarto-table-cell-role="th">Elapsed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>2019.0</td>
+<td>12.0</td>
+<td>49.0</td>
+<td>4.0</td>
+<td>2.0</td>
+<td>338.0</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>1.575418e+09</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>NaN</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>NaN</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2019.0</td>
+<td>11.0</td>
+<td>46.0</td>
+<td>15.0</td>
+<td>4.0</td>
+<td>319.0</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>1.573776e+09</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2019.0</td>
+<td>10.0</td>
+<td>43.0</td>
+<td>24.0</td>
+<td>3.0</td>
+<td>297.0</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+<td>1.571875e+09</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L58" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="add_elapsed_times" class="level3">
+<h3 class="anchored" data-anchor-id="add_elapsed_times">add_elapsed_times</h3>
+<blockquote class="blockquote">
+<pre><code> add_elapsed_times (df, field_names, date_field, base_field)</code></pre>
+</blockquote>
+<p><em>Add in <code>df</code> for each event in <code>field_names</code> the elapsed time according to <code>date_field</code> grouped by <code>base_field</code></em></p>
+<div id="cell-9" class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">'date'</span>: [<span class="st">'2019-12-04'</span>, <span class="st">'2019-11-29'</span>, <span class="st">'2019-11-15'</span>, <span class="st">'2019-10-24'</span>],</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'event'</span>: [<span class="va">False</span>, <span class="va">True</span>, <span class="va">False</span>, <span class="va">True</span>], <span class="st">'base'</span>: [<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">2</span>]})</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> add_elapsed_times(df, [<span class="st">'event'</span>], <span class="st">'date'</span>, <span class="st">'base'</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>df.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">date</th>
+<th data-quarto-table-cell-role="th">event</th>
+<th data-quarto-table-cell-role="th">base</th>
+<th data-quarto-table-cell-role="th">Afterevent</th>
+<th data-quarto-table-cell-role="th">Beforeevent</th>
+<th data-quarto-table-cell-role="th">event_bw</th>
+<th data-quarto-table-cell-role="th">event_fw</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>2019-12-04</td>
+<td>False</td>
+<td>1</td>
+<td>5</td>
+<td>0</td>
+<td>1.0</td>
+<td>0.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>2019-11-29</td>
+<td>True</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1.0</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2019-11-15</td>
+<td>False</td>
+<td>2</td>
+<td>22</td>
+<td>0</td>
+<td>1.0</td>
+<td>0.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>2019-10-24</td>
+<td>True</td>
+<td>2</td>
+<td>0</td>
+<td>0</td>
+<td>1.0</td>
+<td>1.0</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L86" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="cont_cat_split" class="level3">
+<h3 class="anchored" data-anchor-id="cont_cat_split">cont_cat_split</h3>
+<blockquote class="blockquote">
+<pre><code> cont_cat_split (df, max_card=20, dep_var=None)</code></pre>
+</blockquote>
+<p><em>Helper function that returns column names of cont and cat variables from given <code>df</code>.</em></p>
+<p>This function works by determining if a column is continuous or categorical based on the cardinality of its values. If it is above the <code>max_card</code> parameter (or a <code>float</code> datatype) then it will be added to the <code>cont_names</code> else <code>cat_names</code>. An example is below:</p>
+<div id="cell-12" class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example with simple numpy types</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">'cat1'</span>: [<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], <span class="st">'cont1'</span>: [<span class="fl">1.</span>, <span class="fl">2.</span>, <span class="fl">3.</span>, <span class="fl">2.</span>], <span class="st">'cat2'</span>: [<span class="st">'a'</span>, <span class="st">'b'</span>, <span class="st">'b'</span>, <span class="st">'a'</span>],</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'i8'</span>: pd.Series([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], dtype<span class="op">=</span><span class="st">'int8'</span>),</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'u8'</span>: pd.Series([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], dtype<span class="op">=</span><span class="st">'uint8'</span>),</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'f16'</span>: pd.Series([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], dtype<span class="op">=</span><span class="st">'float16'</span>),</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'y1'</span>: [<span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">0</span>], <span class="st">'y2'</span>: [<span class="dv">2</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>]})</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>cont_names, cat_names <span class="op">=</span> cont_cat_split(df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-13" class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>cont_names: ['cont1', 'f16']
+cat_names: ['cat1', 'cat2', 'i8', 'u8', 'y1', 'y2']`</code></pre>
+</div>
+</div>
+<div id="cell-14" class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example with pandas types and generated columns</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">'cat1'</span>: pd.Series([<span class="st">'l'</span>,<span class="st">'xs'</span>,<span class="st">'xl'</span>,<span class="st">'s'</span>], dtype<span class="op">=</span><span class="st">'category'</span>),</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'ui32'</span>: pd.Series([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], dtype<span class="op">=</span><span class="st">'UInt32'</span>),</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'i64'</span>: pd.Series([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], dtype<span class="op">=</span><span class="st">'Int64'</span>),</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'f16'</span>: pd.Series([<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>], dtype<span class="op">=</span><span class="st">'Float64'</span>),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>                    <span class="st">'d1_date'</span>: [<span class="st">'2021-02-09'</span>, <span class="va">None</span>, <span class="st">'2020-05-12'</span>, <span class="st">'2020-08-14'</span>],</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>                    })</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> add_datepart(df, <span class="st">'d1_date'</span>, drop<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>df[<span class="st">'cat1'</span>] <span class="op">=</span> df[<span class="st">'cat1'</span>].cat.set_categories([<span class="st">'xl'</span>,<span class="st">'l'</span>,<span class="st">'m'</span>,<span class="st">'s'</span>,<span class="st">'xs'</span>], ordered<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>cont_names, cat_names <span class="op">=</span> cont_cat_split(df, max_card<span class="op">=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>/home/jhoward/miniconda3/lib/python3.8/site-packages/pandas/core/arrays/categorical.py:2630: FutureWarning: The `inplace` parameter in pandas.Categorical.set_categories is deprecated and will be removed in a future version. Removing unused categories will always return a new Categorical object.
+  res = method(*args, **kwargs)</code></pre>
+</div>
+</div>
+<div id="cell-15" class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>cont_names: ['ui32', 'i64', 'f16', 'd1_Year', 'd1_Month', 'd1_Week', 'd1_Day', 'd1_Dayofweek', 'd1_Dayofyear', 'd1_Elapsed']
+cat_names: ['cat1', 'd1_date', 'd1_Is_month_end', 'd1_Is_month_start', 'd1_Is_quarter_end', 'd1_Is_quarter_start', 'd1_Is_year_end', 'd1_Is_year_start']</code></pre>
+</div>
+</div>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L99" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="df_shrink_dtypes" class="level3">
+<h3 class="anchored" data-anchor-id="df_shrink_dtypes">df_shrink_dtypes</h3>
+<blockquote class="blockquote">
+<pre><code> df_shrink_dtypes (df, skip=[], obj2cat=True, int2uint=False)</code></pre>
+</blockquote>
+<p><em>Return any possible smaller data types for DataFrame columns. Allows <code>object</code>-&gt;<code>category</code>, <code>int</code>-&gt;<code>uint</code>, and exclusion.</em></p>
+<p>For example we will make a sample <code>DataFrame</code> with <code>int</code>, <code>float</code>, <code>bool</code>, and <code>object</code> datatypes:</p>
+<div id="cell-18" class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">'i'</span>: [<span class="op">-</span><span class="dv">100</span>, <span class="dv">0</span>, <span class="dv">100</span>], <span class="st">'f'</span>: [<span class="op">-</span><span class="fl">100.0</span>, <span class="fl">0.0</span>, <span class="fl">100.0</span>], <span class="st">'e'</span>: [<span class="va">True</span>, <span class="va">False</span>, <span class="va">True</span>],</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'date'</span>:[<span class="st">'2019-12-04'</span>,<span class="st">'2019-11-29'</span>,<span class="st">'2019-11-15'</span>,]})</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>df.dtypes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>i         int64
+f       float64
+e          bool
+date     object
+dtype: object</code></pre>
+</div>
+</div>
+<p>We can then call <a href="https://docs.fast.ai/tabular.core.html#df_shrink_dtypes"><code>df_shrink_dtypes</code></a> to find the smallest possible datatype that can support the data:</p>
+<div id="cell-20" class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>dt <span class="op">=</span> df_shrink_dtypes(df)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>dt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'i': dtype('int8'), 'f': dtype('float32'), 'date': 'category'}</code></pre>
+</div>
+</div>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L128" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="df_shrink" class="level3">
+<h3 class="anchored" data-anchor-id="df_shrink">df_shrink</h3>
+<blockquote class="blockquote">
+<pre><code> df_shrink (df, skip=[], obj2cat=True, int2uint=False)</code></pre>
+</blockquote>
+<p><em>Reduce DataFrame memory usage, by casting to smaller types returned by <code>df_shrink_dtypes()</code>.</em></p>
+<p><code>df_shrink(df)</code> attempts to make a DataFrame uses less memory, by fit numeric columns into smallest datatypes. In addition:</p>
+<ul>
+<li><code>boolean</code>, <code>category</code>, <code>datetime64[ns]</code> dtype columns are ignored.</li>
+<li>âobjectâ type columns are categorified, which can save a lot of memory in large dataset. It can be turned off by <code>obj2cat=False</code>.</li>
+<li><code>int2uint=True</code>, to fit <code>int</code> types to <code>uint</code> types, if all data in the column is &gt;= 0.</li>
+<li>columns can be excluded by name using <code>excl_cols=['col1','col2']</code>.</li>
+</ul>
+<p>To get only new column data types without actually casting a DataFrame, use <code>df_shrink_dtypes()</code> with all the same parameters for <code>df_shrink()</code>.</p>
+<div id="cell-23" class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">'i'</span>: [<span class="op">-</span><span class="dv">100</span>, <span class="dv">0</span>, <span class="dv">100</span>], <span class="st">'f'</span>: [<span class="op">-</span><span class="fl">100.0</span>, <span class="fl">0.0</span>, <span class="fl">100.0</span>], <span class="st">'u'</span>:[<span class="dv">0</span>, <span class="dv">10</span>,<span class="dv">254</span>],</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>                  <span class="st">'date'</span>:[<span class="st">'2019-12-04'</span>,<span class="st">'2019-11-29'</span>,<span class="st">'2019-11-15'</span>]})</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>df2 <span class="op">=</span> df_shrink(df, skip<span class="op">=</span>[<span class="st">'date'</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Letâs compare the two:</p>
+<div id="cell-25" class="cell">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>df.dtypes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>i         int64
+f       float64
+u         int64
+date     object
+dtype: object</code></pre>
+</div>
+</div>
+<div id="cell-26" class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>df2.dtypes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>i          int8
+f       float32
+u         int16
+date     object
+dtype: object</code></pre>
+</div>
+</div>
+<p>We can see that the datatypes changed, and even further we can look at their relative memory usages:</p>
+<div id="cell-28" class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Initial Dataframe: 224 bytes
+Reduced Dataframe: 173 bytes</code></pre>
+</div>
+</div>
+<p>Hereâs another example using the <code>ADULT_SAMPLE</code> dataset:</p>
+<div id="cell-30" class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>path <span class="op">=</span> untar_data(URLs.ADULT_SAMPLE)</span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(path<span class="op">/</span><span class="st">'adult.csv'</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>new_df <span class="op">=</span> df_shrink(df, int2uint<span class="op">=</span><span class="va">True</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-31" class="cell">
+<div class="cell-output cell-output-stdout">
+<pre><code>Initial Dataframe: 3.907448 megabytes
+Reduced Dataframe: 0.818329 megabytes</code></pre>
+</div>
+</div>
+<p>We reduced the overall memory used by 79%!</p>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L146" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="tabular" class="level3">
+<h3 class="anchored" data-anchor-id="tabular">Tabular</h3>
+<blockquote class="blockquote">
+<pre><code> Tabular (df, procs=None, cat_names=None, cont_names=None, y_names=None,
+          y_block=None, splits=None, do_setup=True, device=None,
+          inplace=False, reduce_memory=True)</code></pre>
+</blockquote>
+<p><em>A <code>DataFrame</code> wrapper that knows which cols are cont/cat/y, and returns rows in <code>__getitem__</code></em></p>
+<ul>
+<li><code>df</code>: A <code>DataFrame</code> of your data</li>
+<li><code>cat_names</code>: Your categorical <code>x</code> variables</li>
+<li><code>cont_names</code>: Your continuous <code>x</code> variables</li>
+<li><code>y_names</code>: Your dependent <code>y</code> variables
+<ul>
+<li>Note: Mixed yâs such as Regression and Classification is not currently supported, however multiple regression or classification outputs is</li>
+</ul></li>
+<li><code>y_block</code>: How to sub-categorize the type of <code>y_names</code> (<a href="https://docs.fast.ai/data.block.html#categoryblock"><code>CategoryBlock</code></a> or <a href="https://docs.fast.ai/data.block.html#regressionblock"><code>RegressionBlock</code></a>)</li>
+<li><code>splits</code>: How to split your data</li>
+<li><code>do_setup</code>: A parameter for if <a href="https://docs.fast.ai/tabular.core.html#tabular"><code>Tabular</code></a> will run the data through the <code>procs</code> upon initialization</li>
+<li><code>device</code>: <code>cuda</code> or <code>cpu</code></li>
+<li><code>inplace</code>: If <code>True</code>, <a href="https://docs.fast.ai/tabular.core.html#tabular"><code>Tabular</code></a> will not keep a separate copy of your original <code>DataFrame</code> in memory. You should ensure <code>pd.options.mode.chained_assignment</code> is <code>None</code> before setting this</li>
+<li><code>reduce_memory</code>: <code>fastai</code> will attempt to reduce the overall memory usage by the inputted <code>DataFrame</code> with <a href="https://docs.fast.ai/tabular.core.html#df_shrink"><code>df_shrink</code></a></li>
+</ul>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L201" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="tabularpandas" class="level3">
+<h3 class="anchored" data-anchor-id="tabularpandas">TabularPandas</h3>
+<blockquote class="blockquote">
+<pre><code> TabularPandas (df, procs=None, cat_names=None, cont_names=None,
+                y_names=None, y_block=None, splits=None, do_setup=True,
+                device=None, inplace=False, reduce_memory=True)</code></pre>
+</blockquote>
+<p><em>A <a href="https://docs.fast.ai/tabular.core.html#tabular"><code>Tabular</code></a> object with transforms</em></p>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L223" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="tabularproc" class="level3">
+<h3 class="anchored" data-anchor-id="tabularproc">TabularProc</h3>
+<blockquote class="blockquote">
+<pre><code> TabularProc (enc=None, dec=None, split_idx=None, order=None)</code></pre>
+</blockquote>
+<p><em>Base class to write a non-lazy tabular processor for dataframes</em></p>
+<p>These transforms are applied as soon as the data is available rather than as data is called from the <a href="https://docs.fast.ai/data.load.html#dataloader"><code>DataLoader</code></a></p>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L241" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="categorify" class="level3">
+<h3 class="anchored" data-anchor-id="categorify">Categorify</h3>
+<blockquote class="blockquote">
+<pre><code> Categorify (enc=None, dec=None, split_idx=None, order=None)</code></pre>
+</blockquote>
+<p><em>Transform the categorical variables to something similar to <code>pd.Categorical</code></em></p>
+<p>While visually in the <code>DataFrame</code> you will not see a change, the classes are stored in <code>to.procs.categorify</code> as we can see below on a dummy <code>DataFrame</code>:</p>
+<div id="cell-40" class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame({<span class="st">'a'</span>:[<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">0</span>,<span class="dv">2</span>]})</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>to <span class="op">=</span> TabularPandas(df, Categorify, <span class="st">'a'</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>to.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">a</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>2</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>Each columnâs unique values are stored in a dictionary of <code>column:[values]</code>:</p>
+<div id="cell-42" class="cell">
+<div class="sourceCode cell-code" id="cb32"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a>cat <span class="op">=</span> to.procs.categorify</span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>cat.classes</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'a': ['#na#', 0, 1, 2]}</code></pre>
+</div>
+</div>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L290" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="fillstrategy" class="level3">
+<h3 class="anchored" data-anchor-id="fillstrategy">FillStrategy</h3>
+<blockquote class="blockquote">
+<pre><code> FillStrategy ()</code></pre>
+</blockquote>
+<p><em>Namespace containing the various filling strategies.</em></p>
+<p>Currently, filling with the <code>median</code>, a <code>constant</code>, and the <code>mode</code> are supported.</p>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L297" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="fillmissing" class="level3">
+<h3 class="anchored" data-anchor-id="fillmissing">FillMissing</h3>
+<blockquote class="blockquote">
+<pre><code> FillMissing (fill_strategy=&lt;function median&gt;, add_col=True,
+              fill_vals=None)</code></pre>
+</blockquote>
+<p><em>Fill the missing values in continuous columns.</em></p>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L323" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="readtabbatch" class="level3">
+<h3 class="anchored" data-anchor-id="readtabbatch">ReadTabBatch</h3>
+<blockquote class="blockquote">
+<pre><code> ReadTabBatch (to)</code></pre>
+</blockquote>
+<p><em>Transform <a href="https://docs.fast.ai/tabular.core.html#tabularpandas"><code>TabularPandas</code></a> values into a <code>Tensor</code> with the ability to decode</em></p>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L350" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="tabdataloader" class="level3">
+<h3 class="anchored" data-anchor-id="tabdataloader">TabDataLoader</h3>
+<blockquote class="blockquote">
+<pre><code> TabDataLoader (dataset, bs=16, shuffle=False, after_batch=None,
+                num_workers=0, verbose:bool=False, do_setup:bool=True,
+                pin_memory=False, timeout=0, batch_size=None,
+                drop_last=False, indexed=None, n=None, device=None,
+                persistent_workers=False, pin_memory_device='', wif=None,
+                before_iter=None, after_item=None, before_batch=None,
+                after_iter=None, create_batches=None, create_item=None,
+                create_batch=None, retain=None, get_idxs=None,
+                sample=None, shuffle_fn=None, do_batch=None)</code></pre>
+</blockquote>
+<p><em>A transformed <a href="https://docs.fast.ai/data.load.html#dataloader"><code>DataLoader</code></a> for Tabular data</em></p>
+<hr>
+<p><a href="https://github.com/fastai/fastai/blob/master/fastai/tabular/core.py#L364" target="_blank" style="float:right; font-size:smaller">source</a></p>
+</section>
+<section id="tabweighteddl" class="level3">
+<h3 class="anchored" data-anchor-id="tabweighteddl">TabWeightedDL</h3>
+<blockquote class="blockquote">
+<pre><code> TabWeightedDL (dataset, bs=16, wgts=None, shuffle=False,
+                after_batch=None, num_workers=0, verbose:bool=False,
+                do_setup:bool=True, pin_memory=False, timeout=0,
+                batch_size=None, drop_last=False, indexed=None, n=None,
+                device=None, persistent_workers=False,
+                pin_memory_device='', wif=None, before_iter=None,
+                after_item=None, before_batch=None, after_iter=None,
+                create_batches=None, create_item=None, create_batch=None,
+                retain=None, get_idxs=None, sample=None, shuffle_fn=None,
+                do_batch=None)</code></pre>
+</blockquote>
+<p><em>A transformed <a href="https://docs.fast.ai/data.load.html#dataloader"><code>DataLoader</code></a> for Tabular Weighted data</em></p>
+</section>
+</section>
+<section id="integration-example" class="level2">
+<h2 class="anchored" data-anchor-id="integration-example">Integration example</h2>
+<p>For a more in-depth explanation, see the <a href="http://docs.fast.ai/tutorial.tabular.html">tabular tutorial</a></p>
+<div id="cell-51" class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a>path <span class="op">=</span> untar_data(URLs.ADULT_SAMPLE)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(path<span class="op">/</span><span class="st">'adult.csv'</span>)</span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>df_main,df_test <span class="op">=</span> df.iloc[:<span class="dv">10000</span>].copy(),df.iloc[<span class="dv">10000</span>:].copy()</span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>df_test.drop(<span class="st">'salary'</span>, axis<span class="op">=</span><span class="dv">1</span>, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>df_main.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">sex</th>
+<th data-quarto-table-cell-role="th">capital-gain</th>
+<th data-quarto-table-cell-role="th">capital-loss</th>
+<th data-quarto-table-cell-role="th">hours-per-week</th>
+<th data-quarto-table-cell-role="th">native-country</th>
+<th data-quarto-table-cell-role="th">salary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>49</td>
+<td>Private</td>
+<td>101320</td>
+<td>Assoc-acdm</td>
+<td>12.0</td>
+<td>Married-civ-spouse</td>
+<td>NaN</td>
+<td>Wife</td>
+<td>White</td>
+<td>Female</td>
+<td>0</td>
+<td>1902</td>
+<td>40</td>
+<td>United-States</td>
+<td>&gt;=50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>44</td>
+<td>Private</td>
+<td>236746</td>
+<td>Masters</td>
+<td>14.0</td>
+<td>Divorced</td>
+<td>Exec-managerial</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>Male</td>
+<td>10520</td>
+<td>0</td>
+<td>45</td>
+<td>United-States</td>
+<td>&gt;=50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>38</td>
+<td>Private</td>
+<td>96185</td>
+<td>HS-grad</td>
+<td>NaN</td>
+<td>Divorced</td>
+<td>NaN</td>
+<td>Unmarried</td>
+<td>Black</td>
+<td>Female</td>
+<td>0</td>
+<td>0</td>
+<td>32</td>
+<td>United-States</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>38</td>
+<td>Self-emp-inc</td>
+<td>112847</td>
+<td>Prof-school</td>
+<td>15.0</td>
+<td>Married-civ-spouse</td>
+<td>Prof-specialty</td>
+<td>Husband</td>
+<td>Asian-Pac-Islander</td>
+<td>Male</td>
+<td>0</td>
+<td>0</td>
+<td>40</td>
+<td>United-States</td>
+<td>&gt;=50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>42</td>
+<td>Self-emp-not-inc</td>
+<td>82297</td>
+<td>7th-8th</td>
+<td>NaN</td>
+<td>Married-civ-spouse</td>
+<td>Other-service</td>
+<td>Wife</td>
+<td>Black</td>
+<td>Female</td>
+<td>0</td>
+<td>0</td>
+<td>50</td>
+<td>United-States</td>
+<td>&lt;50k</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="cell-52" class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>cat_names <span class="op">=</span> [<span class="st">'workclass'</span>, <span class="st">'education'</span>, <span class="st">'marital-status'</span>, <span class="st">'occupation'</span>, <span class="st">'relationship'</span>, <span class="st">'race'</span>]</span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>cont_names <span class="op">=</span> [<span class="st">'age'</span>, <span class="st">'fnlwgt'</span>, <span class="st">'education-num'</span>]</span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>procs <span class="op">=</span> [Categorify, FillMissing, Normalize]</span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>splits <span class="op">=</span> RandomSplitter()(range_of(df_main))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-53" class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>to <span class="op">=</span> TabularPandas(df_main, procs, cat_names, cont_names, y_names<span class="op">=</span><span class="st">"salary"</span>, splits<span class="op">=</span>splits)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-54" class="cell">
+<div class="sourceCode cell-code" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>dls <span class="op">=</span> to.dataloaders()</span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>dls.valid.show_batch()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">education-num_na</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+<th data-quarto-table-cell-role="th">salary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>Self-emp-not-inc</td>
+<td>Prof-school</td>
+<td>Divorced</td>
+<td>Prof-specialty</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>False</td>
+<td>65.000000</td>
+<td>316093.005287</td>
+<td>15.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>Private</td>
+<td>Bachelors</td>
+<td>Married-civ-spouse</td>
+<td>Exec-managerial</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>69.999999</td>
+<td>280306.998091</td>
+<td>13.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>Federal-gov</td>
+<td>Some-college</td>
+<td>Married-civ-spouse</td>
+<td>Adm-clerical</td>
+<td>Husband</td>
+<td>Black</td>
+<td>False</td>
+<td>34.000000</td>
+<td>199933.999862</td>
+<td>10.0</td>
+<td>&gt;=50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Never-married</td>
+<td>Handlers-cleaners</td>
+<td>Unmarried</td>
+<td>White</td>
+<td>False</td>
+<td>24.000001</td>
+<td>300584.002430</td>
+<td>9.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>Private</td>
+<td>Assoc-voc</td>
+<td>Never-married</td>
+<td>Other-service</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>False</td>
+<td>34.000000</td>
+<td>220630.999335</td>
+<td>11.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">5</td>
+<td>Private</td>
+<td>Bachelors</td>
+<td>Divorced</td>
+<td>Prof-specialty</td>
+<td>Unmarried</td>
+<td>White</td>
+<td>False</td>
+<td>45.000000</td>
+<td>289230.003178</td>
+<td>13.0</td>
+<td>&gt;=50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>?</td>
+<td>Some-college</td>
+<td>Never-married</td>
+<td>?</td>
+<td>Own-child</td>
+<td>White</td>
+<td>False</td>
+<td>26.000000</td>
+<td>208993.999494</td>
+<td>10.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">7</td>
+<td>Private</td>
+<td>Some-college</td>
+<td>Divorced</td>
+<td>Adm-clerical</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>False</td>
+<td>43.000000</td>
+<td>174574.999446</td>
+<td>10.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">8</td>
+<td>Self-emp-not-inc</td>
+<td>Assoc-voc</td>
+<td>Married-civ-spouse</td>
+<td>Other-service</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>63.000000</td>
+<td>420628.997361</td>
+<td>11.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9</td>
+<td>State-gov</td>
+<td>Some-college</td>
+<td>Married-civ-spouse</td>
+<td>Adm-clerical</td>
+<td>Husband</td>
+<td>Black</td>
+<td>False</td>
+<td>25.000000</td>
+<td>257064.003065</td>
+<td>10.0</td>
+<td>&lt;50k</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="cell-55" class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>to.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">education-num_na</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+<th data-quarto-table-cell-role="th">salary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">5516</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Divorced</td>
+<td>Exec-managerial</td>
+<td>Unmarried</td>
+<td>White</td>
+<td>False</td>
+<td>49.0</td>
+<td>140121.0</td>
+<td>9.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">7184</td>
+<td>Self-emp-inc</td>
+<td>Some-college</td>
+<td>Never-married</td>
+<td>Exec-managerial</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>False</td>
+<td>70.0</td>
+<td>207938.0</td>
+<td>10.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2336</td>
+<td>Private</td>
+<td>Some-college</td>
+<td>Never-married</td>
+<td>Priv-house-serv</td>
+<td>Own-child</td>
+<td>White</td>
+<td>False</td>
+<td>23.0</td>
+<td>50953.0</td>
+<td>10.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">4342</td>
+<td>Private</td>
+<td>Assoc-voc</td>
+<td>Married-civ-spouse</td>
+<td>Machine-op-inspct</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>46.0</td>
+<td>27802.0</td>
+<td>11.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">8474</td>
+<td>Self-emp-not-inc</td>
+<td>Assoc-acdm</td>
+<td>Married-civ-spouse</td>
+<td>Craft-repair</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>47.0</td>
+<td>107231.0</td>
+<td>12.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">5948</td>
+<td>Local-gov</td>
+<td>HS-grad</td>
+<td>Married-civ-spouse</td>
+<td>Transport-moving</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>40.0</td>
+<td>55363.0</td>
+<td>9.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">5342</td>
+<td>Local-gov</td>
+<td>HS-grad</td>
+<td>Married-civ-spouse</td>
+<td>Craft-repair</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>46.0</td>
+<td>36228.0</td>
+<td>9.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9005</td>
+<td>Private</td>
+<td>Bachelors</td>
+<td>Married-civ-spouse</td>
+<td>Adm-clerical</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>38.0</td>
+<td>297449.0</td>
+<td>13.0</td>
+<td>&gt;=50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">1189</td>
+<td>Private</td>
+<td>Assoc-voc</td>
+<td>Divorced</td>
+<td>Sales</td>
+<td>Not-in-family</td>
+<td>Amer-Indian-Eskimo</td>
+<td>False</td>
+<td>31.0</td>
+<td>87950.0</td>
+<td>11.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">8784</td>
+<td>Private</td>
+<td>Assoc-voc</td>
+<td>Divorced</td>
+<td>Prof-specialty</td>
+<td>Own-child</td>
+<td>Black</td>
+<td>False</td>
+<td>35.0</td>
+<td>491000.0</td>
+<td>11.0</td>
+<td>&lt;50k</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>We can decode any set of transformed data by calling <code>to.decode_row</code> with our raw data:</p>
+<div id="cell-57" class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>row <span class="op">=</span> to.items.iloc[<span class="dv">0</span>]</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>to.decode_row(row)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>age                             49.0
+workclass                    Private
+fnlwgt                      140121.0
+education                    HS-grad
+education-num                    9.0
+marital-status              Divorced
+occupation           Exec-managerial
+relationship               Unmarried
+race                           White
+sex                             Male
+capital-gain                       0
+capital-loss                       0
+hours-per-week                    50
+native-country         United-States
+salary                          &lt;50k
+education-num_na               False
+Name: 5516, dtype: object</code></pre>
+</div>
+</div>
+<p>We can make new test datasets based on the training data with the <code>to.new()</code></p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Since machine learning models canât magically understand categories it was never trained on, the data should reflect this. If there are different missing values in your test data you should address this before training</p>
+</div>
+</div>
+<div id="cell-59" class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>to_tst <span class="op">=</span> to.new(df_test)</span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>to_tst.process()</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>to_tst.items.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">sex</th>
+<th data-quarto-table-cell-role="th">capital-gain</th>
+<th data-quarto-table-cell-role="th">capital-loss</th>
+<th data-quarto-table-cell-role="th">hours-per-week</th>
+<th data-quarto-table-cell-role="th">native-country</th>
+<th data-quarto-table-cell-role="th">education-num_na</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">10000</td>
+<td>0.465031</td>
+<td>5</td>
+<td>1.319553</td>
+<td>10</td>
+<td>1.176677</td>
+<td>3</td>
+<td>2</td>
+<td>1</td>
+<td>2</td>
+<td>Male</td>
+<td>0</td>
+<td>0</td>
+<td>40</td>
+<td>Philippines</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">10001</td>
+<td>-0.926675</td>
+<td>5</td>
+<td>1.233650</td>
+<td>12</td>
+<td>-0.420035</td>
+<td>3</td>
+<td>15</td>
+<td>1</td>
+<td>4</td>
+<td>Male</td>
+<td>0</td>
+<td>0</td>
+<td>40</td>
+<td>United-States</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">10002</td>
+<td>1.051012</td>
+<td>5</td>
+<td>0.145161</td>
+<td>2</td>
+<td>-1.218391</td>
+<td>1</td>
+<td>9</td>
+<td>2</td>
+<td>5</td>
+<td>Female</td>
+<td>0</td>
+<td>0</td>
+<td>37</td>
+<td>United-States</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">10003</td>
+<td>0.538279</td>
+<td>5</td>
+<td>-0.282370</td>
+<td>12</td>
+<td>-0.420035</td>
+<td>7</td>
+<td>2</td>
+<td>5</td>
+<td>5</td>
+<td>Female</td>
+<td>0</td>
+<td>0</td>
+<td>43</td>
+<td>United-States</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">10004</td>
+<td>0.758022</td>
+<td>6</td>
+<td>1.420768</td>
+<td>9</td>
+<td>0.378321</td>
+<td>3</td>
+<td>5</td>
+<td>1</td>
+<td>5</td>
+<td>Male</td>
+<td>0</td>
+<td>0</td>
+<td>60</td>
+<td>United-States</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<p>We can then convert it to a <a href="https://docs.fast.ai/data.load.html#dataloader"><code>DataLoader</code></a>:</p>
+<div id="cell-61" class="cell">
+<div class="sourceCode cell-code" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a>tst_dl <span class="op">=</span> dls.valid.new(to_tst)</span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>tst_dl.show_batch()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">education-num_na</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>Private</td>
+<td>Bachelors</td>
+<td>Married-civ-spouse</td>
+<td>Adm-clerical</td>
+<td>Husband</td>
+<td>Asian-Pac-Islander</td>
+<td>False</td>
+<td>45.000000</td>
+<td>338105.005817</td>
+<td>13.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Married-civ-spouse</td>
+<td>Transport-moving</td>
+<td>Husband</td>
+<td>Other</td>
+<td>False</td>
+<td>26.000000</td>
+<td>328663.002806</td>
+<td>9.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>Private</td>
+<td>11th</td>
+<td>Divorced</td>
+<td>Other-service</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>False</td>
+<td>52.999999</td>
+<td>209022.000317</td>
+<td>7.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Widowed</td>
+<td>Adm-clerical</td>
+<td>Unmarried</td>
+<td>White</td>
+<td>False</td>
+<td>46.000000</td>
+<td>162029.998917</td>
+<td>9.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>Self-emp-inc</td>
+<td>Assoc-voc</td>
+<td>Married-civ-spouse</td>
+<td>Exec-managerial</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>49.000000</td>
+<td>349230.006300</td>
+<td>11.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">5</td>
+<td>Local-gov</td>
+<td>Some-college</td>
+<td>Married-civ-spouse</td>
+<td>Exec-managerial</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>34.000000</td>
+<td>124827.002059</td>
+<td>10.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>Self-emp-inc</td>
+<td>Some-college</td>
+<td>Married-civ-spouse</td>
+<td>Sales</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>52.999999</td>
+<td>290640.002462</td>
+<td>10.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">7</td>
+<td>Private</td>
+<td>Some-college</td>
+<td>Never-married</td>
+<td>Sales</td>
+<td>Own-child</td>
+<td>White</td>
+<td>False</td>
+<td>19.000000</td>
+<td>106272.998239</td>
+<td>10.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">8</td>
+<td>Private</td>
+<td>Some-college</td>
+<td>Married-civ-spouse</td>
+<td>Protective-serv</td>
+<td>Husband</td>
+<td>Black</td>
+<td>False</td>
+<td>71.999999</td>
+<td>53684.001668</td>
+<td>10.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9</td>
+<td>Private</td>
+<td>Some-college</td>
+<td>Never-married</td>
+<td>Sales</td>
+<td>Own-child</td>
+<td>White</td>
+<td>False</td>
+<td>20.000000</td>
+<td>505980.010609</td>
+<td>10.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div id="cell-62" class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Create a TabWeightedDL</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>train_ds <span class="op">=</span> to.train</span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>weights <span class="op">=</span> np.random.random(<span class="bu">len</span>(train_ds))</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>train_dl <span class="op">=</span> TabWeightedDL(train_ds, wgts<span class="op">=</span>weights, bs<span class="op">=</span><span class="dv">64</span>, shuffle<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a>train_dl.show_batch()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">education-num_na</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+<th data-quarto-table-cell-role="th">salary</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>Local-gov</td>
+<td>Masters</td>
+<td>Never-married</td>
+<td>Prof-specialty</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>False</td>
+<td>31.000000</td>
+<td>204469.999932</td>
+<td>14.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>Self-emp-not-inc</td>
+<td>HS-grad</td>
+<td>Divorced</td>
+<td>Farming-fishing</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>False</td>
+<td>32.000000</td>
+<td>34572.002104</td>
+<td>9.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>?</td>
+<td>Some-college</td>
+<td>Widowed</td>
+<td>?</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>False</td>
+<td>64.000000</td>
+<td>34099.998990</td>
+<td>10.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>Private</td>
+<td>Some-college</td>
+<td>Divorced</td>
+<td>Exec-managerial</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>False</td>
+<td>32.000000</td>
+<td>251242.999189</td>
+<td>10.0</td>
+<td>&gt;=50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>Federal-gov</td>
+<td>HS-grad</td>
+<td>Married-civ-spouse</td>
+<td>Exec-managerial</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>55.000001</td>
+<td>176903.999313</td>
+<td>9.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">5</td>
+<td>Private</td>
+<td>11th</td>
+<td>Married-civ-spouse</td>
+<td>Transport-moving</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>50.000000</td>
+<td>192203.000000</td>
+<td>7.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>Private</td>
+<td>10th</td>
+<td>Never-married</td>
+<td>Farming-fishing</td>
+<td>Own-child</td>
+<td>Black</td>
+<td>False</td>
+<td>36.000000</td>
+<td>181720.999704</td>
+<td>6.0</td>
+<td>&lt;50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">7</td>
+<td>Local-gov</td>
+<td>Masters</td>
+<td>Divorced</td>
+<td>Prof-specialty</td>
+<td>Not-in-family</td>
+<td>Amer-Indian-Eskimo</td>
+<td>False</td>
+<td>50.000000</td>
+<td>220640.001490</td>
+<td>14.0</td>
+<td>&gt;=50k</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">8</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Married-civ-spouse</td>
+<td>Adm-clerical</td>
+<td>Wife</td>
+<td>White</td>
+<td>False</td>
+<td>36.000000</td>
+<td>189381.999993</td>
+<td>9.0</td>
+<td>&gt;=50k</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9</td>
+<td>Private</td>
+<td>Masters</td>
+<td>Divorced</td>
+<td>Prof-specialty</td>
+<td>Unmarried</td>
+<td>White</td>
+<td>False</td>
+<td>42.000000</td>
+<td>265697.997341</td>
+<td>14.0</td>
+<td>&lt;50k</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<p>TabDataLoaderâs create_item method</p>
+<div id="cell-64" class="cell">
+<div class="sourceCode cell-code" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.DataFrame([{<span class="st">'age'</span>: <span class="dv">35</span>}])</span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a>to <span class="op">=</span> TabularPandas(df)</span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a>dls <span class="op">=</span> to.dataloaders()</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(dls.create_item(<span class="dv">0</span>))</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="co"># test_eq(dls.create_item(0).items.to_dict(), {'age': 0.5330614747286777, 'workclass': 5, 'fnlwgt': -0.26305443080666174, 'education': 10, 'education-num': 1.169790230219763, 'marital-status': 1, 'occupation': 13, 'relationship': 5, 'race': 3, 'sex': ' Female', 'capital-gain': 0, 'capital-loss': 0, 'hours-per-week': 35, 'native-country': 'United-States', 'salary': 1, 'education-num_na': 1})</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>age    35
+Name: 0, dtype: int8</code></pre>
+</div>
+</div>
+</section>
+<section id="other-target-types" class="level2">
+<h2 class="anchored" data-anchor-id="other-target-types">Other target types</h2>
+<section id="multi-label-categories" class="level3">
+<h3 class="anchored" data-anchor-id="multi-label-categories">Multi-label categories</h3>
+<section id="one-hot-encoded-label" class="level4">
+<h4 class="anchored" data-anchor-id="one-hot-encoded-label">one-hot encoded label</h4>
+<div id="cell-68" class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _mock_multi_label(df):</span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>    sal,sex,white <span class="op">=</span> [],[],[]</span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> row <span class="kw">in</span> df.itertuples():</span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>        sal.append(row.salary <span class="op">==</span> <span class="st">'&gt;=50k'</span>)</span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>        sex.append(row.sex <span class="op">==</span> <span class="st">' Male'</span>)</span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>        white.append(row.race <span class="op">==</span> <span class="st">' White'</span>)</span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'salary'</span>] <span class="op">=</span> np.array(sal)</span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'male'</span>]   <span class="op">=</span> np.array(sex)</span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'white'</span>]  <span class="op">=</span> np.array(white)</span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-69" class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>path <span class="op">=</span> untar_data(URLs.ADULT_SAMPLE)</span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(path<span class="op">/</span><span class="st">'adult.csv'</span>)</span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>df_main,df_test <span class="op">=</span> df.iloc[:<span class="dv">10000</span>].copy(),df.iloc[<span class="dv">10000</span>:].copy()</span>
+<span id="cb52-4"><a href="#cb52-4" aria-hidden="true" tabindex="-1"></a>df_main <span class="op">=</span> _mock_multi_label(df_main)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-70" class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a>df_main.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">sex</th>
+<th data-quarto-table-cell-role="th">capital-gain</th>
+<th data-quarto-table-cell-role="th">capital-loss</th>
+<th data-quarto-table-cell-role="th">hours-per-week</th>
+<th data-quarto-table-cell-role="th">native-country</th>
+<th data-quarto-table-cell-role="th">salary</th>
+<th data-quarto-table-cell-role="th">male</th>
+<th data-quarto-table-cell-role="th">white</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>49</td>
+<td>Private</td>
+<td>101320</td>
+<td>Assoc-acdm</td>
+<td>12.0</td>
+<td>Married-civ-spouse</td>
+<td>NaN</td>
+<td>Wife</td>
+<td>White</td>
+<td>Female</td>
+<td>0</td>
+<td>1902</td>
+<td>40</td>
+<td>United-States</td>
+<td>True</td>
+<td>False</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>44</td>
+<td>Private</td>
+<td>236746</td>
+<td>Masters</td>
+<td>14.0</td>
+<td>Divorced</td>
+<td>Exec-managerial</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>Male</td>
+<td>10520</td>
+<td>0</td>
+<td>45</td>
+<td>United-States</td>
+<td>True</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>38</td>
+<td>Private</td>
+<td>96185</td>
+<td>HS-grad</td>
+<td>NaN</td>
+<td>Divorced</td>
+<td>NaN</td>
+<td>Unmarried</td>
+<td>Black</td>
+<td>Female</td>
+<td>0</td>
+<td>0</td>
+<td>32</td>
+<td>United-States</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>38</td>
+<td>Self-emp-inc</td>
+<td>112847</td>
+<td>Prof-school</td>
+<td>15.0</td>
+<td>Married-civ-spouse</td>
+<td>Prof-specialty</td>
+<td>Husband</td>
+<td>Asian-Pac-Islander</td>
+<td>Male</td>
+<td>0</td>
+<td>0</td>
+<td>40</td>
+<td>United-States</td>
+<td>True</td>
+<td>True</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>42</td>
+<td>Self-emp-not-inc</td>
+<td>82297</td>
+<td>7th-8th</td>
+<td>NaN</td>
+<td>Married-civ-spouse</td>
+<td>Other-service</td>
+<td>Wife</td>
+<td>Black</td>
+<td>Female</td>
+<td>0</td>
+<td>0</td>
+<td>50</td>
+<td>United-States</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="cell-71" class="cell">
+<div class="sourceCode cell-code" id="cb54"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb54-1"><a href="#cb54-1" aria-hidden="true" tabindex="-1"></a>cat_names <span class="op">=</span> [<span class="st">'workclass'</span>, <span class="st">'education'</span>, <span class="st">'marital-status'</span>, <span class="st">'occupation'</span>, <span class="st">'relationship'</span>, <span class="st">'race'</span>]</span>
+<span id="cb54-2"><a href="#cb54-2" aria-hidden="true" tabindex="-1"></a>cont_names <span class="op">=</span> [<span class="st">'age'</span>, <span class="st">'fnlwgt'</span>, <span class="st">'education-num'</span>]</span>
+<span id="cb54-3"><a href="#cb54-3" aria-hidden="true" tabindex="-1"></a>procs <span class="op">=</span> [Categorify, FillMissing, Normalize]</span>
+<span id="cb54-4"><a href="#cb54-4" aria-hidden="true" tabindex="-1"></a>splits <span class="op">=</span> RandomSplitter()(range_of(df_main))</span>
+<span id="cb54-5"><a href="#cb54-5" aria-hidden="true" tabindex="-1"></a>y_names<span class="op">=</span>[<span class="st">"salary"</span>, <span class="st">"male"</span>, <span class="st">"white"</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-72" class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CPU times: user 66 ms, sys: 0 ns, total: 66 ms
+Wall time: 65.3 ms</code></pre>
+</div>
+</div>
+<div id="cell-73" class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a>dls <span class="op">=</span> to.dataloaders()</span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a>dls.valid.show_batch()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">education-num_na</th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+<th data-quarto-table-cell-role="th">salary</th>
+<th data-quarto-table-cell-role="th">male</th>
+<th data-quarto-table-cell-role="th">white</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Divorced</td>
+<td>Exec-managerial</td>
+<td>Unmarried</td>
+<td>White</td>
+<td>False</td>
+<td>47.000000</td>
+<td>164423.000013</td>
+<td>9.0</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>Private</td>
+<td>Some-college</td>
+<td>Married-civ-spouse</td>
+<td>Transport-moving</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>74.999999</td>
+<td>239037.999499</td>
+<td>10.0</td>
+<td>False</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Married-civ-spouse</td>
+<td>Sales</td>
+<td>Wife</td>
+<td>White</td>
+<td>False</td>
+<td>45.000000</td>
+<td>228570.000761</td>
+<td>9.0</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>Self-emp-not-inc</td>
+<td>HS-grad</td>
+<td>Married-civ-spouse</td>
+<td>Exec-managerial</td>
+<td>Husband</td>
+<td>Asian-Pac-Islander</td>
+<td>False</td>
+<td>45.000000</td>
+<td>285574.998753</td>
+<td>9.0</td>
+<td>False</td>
+<td>True</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>Private</td>
+<td>Some-college</td>
+<td>Never-married</td>
+<td>Adm-clerical</td>
+<td>Own-child</td>
+<td>White</td>
+<td>False</td>
+<td>21.999999</td>
+<td>184812.999966</td>
+<td>10.0</td>
+<td>False</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">5</td>
+<td>Private</td>
+<td>10th</td>
+<td>Married-civ-spouse</td>
+<td>Transport-moving</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>67.000001</td>
+<td>274450.998865</td>
+<td>6.0</td>
+<td>False</td>
+<td>True</td>
+<td>True</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Divorced</td>
+<td>Exec-managerial</td>
+<td>Unmarried</td>
+<td>White</td>
+<td>False</td>
+<td>53.999999</td>
+<td>192862.000000</td>
+<td>9.0</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">7</td>
+<td>Federal-gov</td>
+<td>Some-college</td>
+<td>Divorced</td>
+<td>Tech-support</td>
+<td>Unmarried</td>
+<td>Amer-Indian-Eskimo</td>
+<td>False</td>
+<td>37.000000</td>
+<td>33486.997455</td>
+<td>10.0</td>
+<td>False</td>
+<td>False</td>
+<td>False</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">8</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Never-married</td>
+<td>Machine-op-inspct</td>
+<td>Other-relative</td>
+<td>White</td>
+<td>False</td>
+<td>30.000000</td>
+<td>219318.000010</td>
+<td>9.0</td>
+<td>False</td>
+<td>False</td>
+<td>True</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9</td>
+<td>Self-emp-not-inc</td>
+<td>Bachelors</td>
+<td>Married-civ-spouse</td>
+<td>Sales</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>44.000000</td>
+<td>167279.999960</td>
+<td>13.0</td>
+<td>False</td>
+<td>True</td>
+<td>True</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="not-one-hot-encoded" class="level4">
+<h4 class="anchored" data-anchor-id="not-one-hot-encoded">Not one-hot encoded</h4>
+<div id="cell-75" class="cell">
+<div class="sourceCode cell-code" id="cb58"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> _mock_multi_label(df):</span>
+<span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a>    targ <span class="op">=</span> []</span>
+<span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> row <span class="kw">in</span> df.itertuples():</span>
+<span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a>        labels <span class="op">=</span> []</span>
+<span id="cb58-5"><a href="#cb58-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> row.salary <span class="op">==</span> <span class="st">'&gt;=50k'</span>: labels.append(<span class="st">'&gt;50k'</span>)</span>
+<span id="cb58-6"><a href="#cb58-6" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> row.sex <span class="op">==</span> <span class="st">' Male'</span>:   labels.append(<span class="st">'male'</span>)</span>
+<span id="cb58-7"><a href="#cb58-7" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> row.race <span class="op">==</span> <span class="st">' White'</span>: labels.append(<span class="st">'white'</span>)</span>
+<span id="cb58-8"><a href="#cb58-8" aria-hidden="true" tabindex="-1"></a>        targ.append(<span class="st">' '</span>.join(labels))</span>
+<span id="cb58-9"><a href="#cb58-9" aria-hidden="true" tabindex="-1"></a>    df[<span class="st">'target'</span>] <span class="op">=</span> np.array(targ)</span>
+<span id="cb58-10"><a href="#cb58-10" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> df</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-76" class="cell">
+<div class="sourceCode cell-code" id="cb59"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>path <span class="op">=</span> untar_data(URLs.ADULT_SAMPLE)</span>
+<span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(path<span class="op">/</span><span class="st">'adult.csv'</span>)</span>
+<span id="cb59-3"><a href="#cb59-3" aria-hidden="true" tabindex="-1"></a>df_main,df_test <span class="op">=</span> df.iloc[:<span class="dv">10000</span>].copy(),df.iloc[<span class="dv">10000</span>:].copy()</span>
+<span id="cb59-4"><a href="#cb59-4" aria-hidden="true" tabindex="-1"></a>df_main <span class="op">=</span> _mock_multi_label(df_main)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-77" class="cell">
+<div class="sourceCode cell-code" id="cb60"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a>df_main.head()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<div>
+
+
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">age</th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">sex</th>
+<th data-quarto-table-cell-role="th">capital-gain</th>
+<th data-quarto-table-cell-role="th">capital-loss</th>
+<th data-quarto-table-cell-role="th">hours-per-week</th>
+<th data-quarto-table-cell-role="th">native-country</th>
+<th data-quarto-table-cell-role="th">salary</th>
+<th data-quarto-table-cell-role="th">target</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>49</td>
+<td>Private</td>
+<td>101320</td>
+<td>Assoc-acdm</td>
+<td>12.0</td>
+<td>Married-civ-spouse</td>
+<td>NaN</td>
+<td>Wife</td>
+<td>White</td>
+<td>Female</td>
+<td>0</td>
+<td>1902</td>
+<td>40</td>
+<td>United-States</td>
+<td>&gt;=50k</td>
+<td>&gt;50k white</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>44</td>
+<td>Private</td>
+<td>236746</td>
+<td>Masters</td>
+<td>14.0</td>
+<td>Divorced</td>
+<td>Exec-managerial</td>
+<td>Not-in-family</td>
+<td>White</td>
+<td>Male</td>
+<td>10520</td>
+<td>0</td>
+<td>45</td>
+<td>United-States</td>
+<td>&gt;=50k</td>
+<td>&gt;50k male white</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>38</td>
+<td>Private</td>
+<td>96185</td>
+<td>HS-grad</td>
+<td>NaN</td>
+<td>Divorced</td>
+<td>NaN</td>
+<td>Unmarried</td>
+<td>Black</td>
+<td>Female</td>
+<td>0</td>
+<td>0</td>
+<td>32</td>
+<td>United-States</td>
+<td>&lt;50k</td>
+<td></td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>38</td>
+<td>Self-emp-inc</td>
+<td>112847</td>
+<td>Prof-school</td>
+<td>15.0</td>
+<td>Married-civ-spouse</td>
+<td>Prof-specialty</td>
+<td>Husband</td>
+<td>Asian-Pac-Islander</td>
+<td>Male</td>
+<td>0</td>
+<td>0</td>
+<td>40</td>
+<td>United-States</td>
+<td>&gt;=50k</td>
+<td>&gt;50k male</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>42</td>
+<td>Self-emp-not-inc</td>
+<td>82297</td>
+<td>7th-8th</td>
+<td>NaN</td>
+<td>Married-civ-spouse</td>
+<td>Other-service</td>
+<td>Wife</td>
+<td>Black</td>
+<td>Female</td>
+<td>0</td>
+<td>0</td>
+<td>50</td>
+<td>United-States</td>
+<td>&lt;50k</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+
+</div>
+</div>
+</div>
+<div id="cell-78" class="cell">
+<div class="sourceCode cell-code" id="cb61"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="at">@MultiCategorize</span></span>
+<span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> encodes(<span class="va">self</span>, to:Tabular):</span>
+<span id="cb61-3"><a href="#cb61-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">#to.transform(to.y_names, partial(_apply_cats, {n: self.vocab for n in to.y_names}, 0))</span></span>
+<span id="cb61-4"><a href="#cb61-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> to</span>
+<span id="cb61-5"><a href="#cb61-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb61-6"><a href="#cb61-6" aria-hidden="true" tabindex="-1"></a><span class="at">@MultiCategorize</span></span>
+<span id="cb61-7"><a href="#cb61-7" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> decodes(<span class="va">self</span>, to:Tabular):</span>
+<span id="cb61-8"><a href="#cb61-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">#to.transform(to.y_names, partial(_decode_cats, {n: self.vocab for n in to.y_names}))</span></span>
+<span id="cb61-9"><a href="#cb61-9" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> to</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-79" class="cell">
+<div class="sourceCode cell-code" id="cb62"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a>cat_names <span class="op">=</span> [<span class="st">'workclass'</span>, <span class="st">'education'</span>, <span class="st">'marital-status'</span>, <span class="st">'occupation'</span>, <span class="st">'relationship'</span>, <span class="st">'race'</span>]</span>
+<span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a>cont_names <span class="op">=</span> [<span class="st">'age'</span>, <span class="st">'fnlwgt'</span>, <span class="st">'education-num'</span>]</span>
+<span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a>procs <span class="op">=</span> [Categorify, FillMissing, Normalize]</span>
+<span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a>splits <span class="op">=</span> RandomSplitter()(range_of(df_main))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-80" class="cell">
+<div class="sourceCode cell-code" id="cb63"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CPU times: user 68.6 ms, sys: 0 ns, total: 68.6 ms
+Wall time: 67.9 ms</code></pre>
+</div>
+</div>
+<div id="cell-81" class="cell">
+<div class="sourceCode cell-code" id="cb65"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a>to.procs[<span class="dv">2</span>].vocab</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>['-', '_', 'a', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y']</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="regression" class="level3">
+<h3 class="anchored" data-anchor-id="regression">Regression</h3>
+<div id="cell-83" class="cell">
+<div class="sourceCode cell-code" id="cb67"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a>path <span class="op">=</span> untar_data(URLs.ADULT_SAMPLE)</span>
+<span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> pd.read_csv(path<span class="op">/</span><span class="st">'adult.csv'</span>)</span>
+<span id="cb67-3"><a href="#cb67-3" aria-hidden="true" tabindex="-1"></a>df_main,df_test <span class="op">=</span> df.iloc[:<span class="dv">10000</span>].copy(),df.iloc[<span class="dv">10000</span>:].copy()</span>
+<span id="cb67-4"><a href="#cb67-4" aria-hidden="true" tabindex="-1"></a>df_main <span class="op">=</span> _mock_multi_label(df_main)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-84" class="cell">
+<div class="sourceCode cell-code" id="cb68"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb68-1"><a href="#cb68-1" aria-hidden="true" tabindex="-1"></a>cat_names <span class="op">=</span> [<span class="st">'workclass'</span>, <span class="st">'education'</span>, <span class="st">'marital-status'</span>, <span class="st">'occupation'</span>, <span class="st">'relationship'</span>, <span class="st">'race'</span>]</span>
+<span id="cb68-2"><a href="#cb68-2" aria-hidden="true" tabindex="-1"></a>cont_names <span class="op">=</span> [<span class="st">'fnlwgt'</span>, <span class="st">'education-num'</span>]</span>
+<span id="cb68-3"><a href="#cb68-3" aria-hidden="true" tabindex="-1"></a>procs <span class="op">=</span> [Categorify, FillMissing, Normalize]</span>
+<span id="cb68-4"><a href="#cb68-4" aria-hidden="true" tabindex="-1"></a>splits <span class="op">=</span> RandomSplitter()(range_of(df_main))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-85" class="cell">
+<div class="sourceCode cell-code" id="cb69"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>CPU times: user 70.7 ms, sys: 290 Âµs, total: 71 ms
+Wall time: 70.3 ms</code></pre>
+</div>
+</div>
+<div id="cell-86" class="cell">
+<div class="sourceCode cell-code" id="cb71"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a>to.procs[<span class="op">-</span><span class="dv">1</span>].means</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<pre><code>{'fnlwgt': 192085.701, 'education-num': 10.059124946594238}</code></pre>
+</div>
+</div>
+<div id="cell-87" class="cell">
+<div class="sourceCode cell-code" id="cb73"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb73-1"><a href="#cb73-1" aria-hidden="true" tabindex="-1"></a>dls <span class="op">=</span> to.dataloaders()</span>
+<span id="cb73-2"><a href="#cb73-2" aria-hidden="true" tabindex="-1"></a>dls.valid.show_batch()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-display">
+<table class="dataframe caption-top table table-sm table-striped small" data-quarto-postprocess="true" data-border="1">
+<thead>
+<tr class="header">
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th">workclass</th>
+<th data-quarto-table-cell-role="th">education</th>
+<th data-quarto-table-cell-role="th">marital-status</th>
+<th data-quarto-table-cell-role="th">occupation</th>
+<th data-quarto-table-cell-role="th">relationship</th>
+<th data-quarto-table-cell-role="th">race</th>
+<th data-quarto-table-cell-role="th">education-num_na</th>
+<th data-quarto-table-cell-role="th">fnlwgt</th>
+<th data-quarto-table-cell-role="th">education-num</th>
+<th data-quarto-table-cell-role="th">age</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">0</td>
+<td>Private</td>
+<td>12th</td>
+<td>Never-married</td>
+<td>Adm-clerical</td>
+<td>Other-relative</td>
+<td>Black</td>
+<td>False</td>
+<td>503454.004078</td>
+<td>8.0</td>
+<td>47.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">1</td>
+<td>Federal-gov</td>
+<td>Bachelors</td>
+<td>Married-civ-spouse</td>
+<td>Exec-managerial</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>586656.993690</td>
+<td>13.0</td>
+<td>49.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">2</td>
+<td>Self-emp-not-inc</td>
+<td>Assoc-voc</td>
+<td>Married-civ-spouse</td>
+<td>Farming-fishing</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>164607.001243</td>
+<td>11.0</td>
+<td>29.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">3</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Never-married</td>
+<td>Adm-clerical</td>
+<td>Not-in-family</td>
+<td>Black</td>
+<td>False</td>
+<td>155508.999873</td>
+<td>9.0</td>
+<td>48.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">4</td>
+<td>Private</td>
+<td>11th</td>
+<td>Never-married</td>
+<td>Other-service</td>
+<td>Own-child</td>
+<td>White</td>
+<td>False</td>
+<td>318189.998679</td>
+<td>7.0</td>
+<td>18.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">5</td>
+<td>Private</td>
+<td>HS-grad</td>
+<td>Never-married</td>
+<td>Adm-clerical</td>
+<td>Other-relative</td>
+<td>White</td>
+<td>False</td>
+<td>140219.001104</td>
+<td>9.0</td>
+<td>47.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">6</td>
+<td>Private</td>
+<td>Masters</td>
+<td>Divorced</td>
+<td>#na#</td>
+<td>Unmarried</td>
+<td>White</td>
+<td>True</td>
+<td>235683.001562</td>
+<td>10.0</td>
+<td>47.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">7</td>
+<td>Private</td>
+<td>Bachelors</td>
+<td>Married-civ-spouse</td>
+<td>Craft-repair</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>187321.999825</td>
+<td>13.0</td>
+<td>43.0</td>
+</tr>
+<tr class="odd">
+<td data-quarto-table-cell-role="th">8</td>
+<td>Private</td>
+<td>Bachelors</td>
+<td>Married-civ-spouse</td>
+<td>Prof-specialty</td>
+<td>Husband</td>
+<td>White</td>
+<td>False</td>
+<td>104196.002410</td>
+<td>13.0</td>
+<td>40.0</td>
+</tr>
+<tr class="even">
+<td data-quarto-table-cell-role="th">9</td>
+<td>Private</td>
+<td>Some-college</td>
+<td>Separated</td>
+<td>Priv-house-serv</td>
+<td>Other-relative</td>
+<td>White</td>
+<td>False</td>
+<td>184302.999784</td>
+<td>10.0</td>
+<td>25.0</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+</section>
+<section id="not-being-used-now---for-multi-modal" class="level2">
+<h2 class="anchored" data-anchor-id="not-being-used-now---for-multi-modal">Not being used now - for multi-modal</h2>
+<div id="cell-89" class="cell">
+<div class="sourceCode cell-code" id="cb74"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb74-1"><a href="#cb74-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TensorTabular(fastuple):</span>
+<span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> get_ctxs(<span class="va">self</span>, max_n<span class="op">=</span><span class="dv">10</span>, <span class="op">**</span>kwargs):</span>
+<span id="cb74-3"><a href="#cb74-3" aria-hidden="true" tabindex="-1"></a>        n_samples <span class="op">=</span> <span class="bu">min</span>(<span class="va">self</span>[<span class="dv">0</span>].shape[<span class="dv">0</span>], max_n)</span>
+<span id="cb74-4"><a href="#cb74-4" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> pd.DataFrame(index <span class="op">=</span> <span class="bu">range</span>(n_samples))</span>
+<span id="cb74-5"><a href="#cb74-5" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> [df.iloc[i] <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n_samples)]</span>
+<span id="cb74-6"><a href="#cb74-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-7"><a href="#cb74-7" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> display(<span class="va">self</span>, ctxs): display_df(pd.DataFrame(ctxs))</span>
+<span id="cb74-8"><a href="#cb74-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-9"><a href="#cb74-9" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> TabularLine(pd.Series):</span>
+<span id="cb74-10"><a href="#cb74-10" aria-hidden="true" tabindex="-1"></a>    <span class="co">"A line of a dataframe that knows how to show itself"</span></span>
+<span id="cb74-11"><a href="#cb74-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> show(<span class="va">self</span>, ctx<span class="op">=</span><span class="va">None</span>, <span class="op">**</span>kwargs): <span class="cf">return</span> <span class="va">self</span> <span class="cf">if</span> ctx <span class="kw">is</span> <span class="va">None</span> <span class="cf">else</span> ctx.append(<span class="va">self</span>)</span>
+<span id="cb74-12"><a href="#cb74-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-13"><a href="#cb74-13" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ReadTabLine(ItemTransform):</span>
+<span id="cb74-14"><a href="#cb74-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, proc): <span class="va">self</span>.proc <span class="op">=</span> proc</span>
+<span id="cb74-15"><a href="#cb74-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-16"><a href="#cb74-16" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> encodes(<span class="va">self</span>, row):</span>
+<span id="cb74-17"><a href="#cb74-17" aria-hidden="true" tabindex="-1"></a>        cats,conts <span class="op">=</span> (o.<span class="bu">map</span>(row.<span class="fu">__getitem__</span>) <span class="cf">for</span> o <span class="kw">in</span> (<span class="va">self</span>.proc.cat_names,<span class="va">self</span>.proc.cont_names))</span>
+<span id="cb74-18"><a href="#cb74-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> TensorTabular(tensor(cats).<span class="bu">long</span>(),tensor(conts).<span class="bu">float</span>())</span>
+<span id="cb74-19"><a href="#cb74-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-20"><a href="#cb74-20" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> decodes(<span class="va">self</span>, o):</span>
+<span id="cb74-21"><a href="#cb74-21" aria-hidden="true" tabindex="-1"></a>        to <span class="op">=</span> TabularPandas(o, <span class="va">self</span>.proc.cat_names, <span class="va">self</span>.proc.cont_names, <span class="va">self</span>.proc.y_names)</span>
+<span id="cb74-22"><a href="#cb74-22" aria-hidden="true" tabindex="-1"></a>        to <span class="op">=</span> <span class="va">self</span>.proc.decode(to)</span>
+<span id="cb74-23"><a href="#cb74-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> TabularLine(pd.Series({c: v <span class="cf">for</span> v,c <span class="kw">in</span> <span class="bu">zip</span>(to.items[<span class="dv">0</span>]<span class="op">+</span>to.items[<span class="dv">1</span>], <span class="va">self</span>.proc.cat_names<span class="op">+</span><span class="va">self</span>.proc.cont_names)}))</span>
+<span id="cb74-24"><a href="#cb74-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb74-25"><a href="#cb74-25" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> ReadTabTarget(ItemTransform):</span>
+<span id="cb74-26"><a href="#cb74-26" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, proc): <span class="va">self</span>.proc <span class="op">=</span> proc</span>
+<span id="cb74-27"><a href="#cb74-27" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> encodes(<span class="va">self</span>, row): <span class="cf">return</span> row[<span class="va">self</span>.proc.y_names].astype(np.int64)</span>
+<span id="cb74-28"><a href="#cb74-28" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> decodes(<span class="va">self</span>, o): <span class="cf">return</span> Category(<span class="va">self</span>.proc.classes[<span class="va">self</span>.proc.y_names][o])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div id="cell-90" class="cell">
+<div class="sourceCode cell-code" id="cb75"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co"># tds = TfmdDS(to.items, tfms=[[ReadTabLine(proc)], ReadTabTarget(proc)])</span></span>
+<span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a><span class="co"># enc = tds[1]</span></span>
+<span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a><span class="co"># test_eq(enc[0][0], tensor([2,1]))</span></span>
+<span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a><span class="co"># test_close(enc[0][1], tensor([-0.628828]))</span></span>
+<span id="cb75-5"><a href="#cb75-5" aria-hidden="true" tabindex="-1"></a><span class="co"># test_eq(enc[1], 1)</span></span>
+<span id="cb75-6"><a href="#cb75-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-7"><a href="#cb75-7" aria-hidden="true" tabindex="-1"></a><span class="co"># dec = tds.decode(enc)</span></span>
+<span id="cb75-8"><a href="#cb75-8" aria-hidden="true" tabindex="-1"></a><span class="co"># assert isinstance(dec[0], TabularLine)</span></span>
+<span id="cb75-9"><a href="#cb75-9" aria-hidden="true" tabindex="-1"></a><span class="co"># test_close(dec[0], pd.Series({'a': 1, 'b_na': False, 'b': 1}))</span></span>
+<span id="cb75-10"><a href="#cb75-10" aria-hidden="true" tabindex="-1"></a><span class="co"># test_eq(dec[1], 'a')</span></span>
+<span id="cb75-11"><a href="#cb75-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb75-12"><a href="#cb75-12" aria-hidden="true" tabindex="-1"></a><span class="co"># test_stdout(lambda: print(show_at(tds, 1)), """a               1</span></span>
+<span id="cb75-13"><a href="#cb75-13" aria-hidden="true" tabindex="-1"></a><span class="co"># b_na        False</span></span>
+<span id="cb75-14"><a href="#cb75-14" aria-hidden="true" tabindex="-1"></a><span class="co"># b               1</span></span>
+<span id="cb75-15"><a href="#cb75-15" aria-hidden="true" tabindex="-1"></a><span class="co"># category        a</span></span>
+<span id="cb75-16"><a href="#cb75-16" aria-hidden="true" tabindex="-1"></a><span class="co"># dtype: object""")</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "î§";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const onCopySuccess = function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  }
+  const getTextToCopy = function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+    text: getTextToCopy
+  });
+  clipboard.on('success', onCopySuccess);
+  if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+    // For code content inside modals, clipBoardJS needs to be initialized with a container option
+    // TODO: Check when it could be a function (https://github.com/zenorocha/clipboard.js/issues/860)
+    const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+      text: getTextToCopy,
+      container: window.document.getElementById('quarto-embedded-source-code-modal')
+    });
+    clipboardModal.on('success', onCopySuccess);
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+    var mailtoRegex = new RegExp(/^mailto:/);
+      var filterRegex = new RegExp("https:\/\/docs\.fast\.ai\/");
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+ 	var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+        // undo the damage that might have been done by quarto-nav.js in the case of
+        // links that we want to consider external
+        if (link.dataset.originalHref !== undefined) {
+          link.href = link.dataset.originalHref;
+        }
+      }
+    }
+  function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+    const config = {
+      allowHTML: true,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start',
+    };
+    if (contentFn) {
+      config.content = contentFn;
+    }
+    if (onTriggerFn) {
+      config.onTrigger = onTriggerFn;
+    }
+    if (onUntriggerFn) {
+      config.onUntrigger = onUntriggerFn;
+    }
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      if (note) {
+        return note.innerHTML;
+      } else {
+        return "";
+      }
+    });
+  }
+  const xrefs = window.document.querySelectorAll('a.quarto-xref');
+  const processXRef = (id, note) => {
+    // Strip column container classes
+    const stripColumnClz = (el) => {
+      el.classList.remove("page-full", "page-columns");
+      if (el.children) {
+        for (const child of el.children) {
+          stripColumnClz(child);
+        }
+      }
+    }
+    stripColumnClz(note)
+    if (id === null || id.startsWith('sec-')) {
+      // Special case sections, only their first couple elements
+      const container = document.createElement("div");
+      if (note.children && note.children.length > 2) {
+        container.appendChild(note.children[0].cloneNode(true));
+        for (let i = 1; i < note.children.length; i++) {
+          const child = note.children[i];
+          if (child.tagName === "P" && child.innerText === "") {
+            continue;
+          } else {
+            container.appendChild(child.cloneNode(true));
+            break;
+          }
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(container);
+        }
+        return container.innerHTML
+      } else {
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        return note.innerHTML;
+      }
+    } else {
+      // Remove any anchor links if they are present
+      const anchorLink = note.querySelector('a.anchorjs-link');
+      if (anchorLink) {
+        anchorLink.remove();
+      }
+      if (window.Quarto?.typesetMath) {
+        window.Quarto.typesetMath(note);
+      }
+      // TODO in 1.5, we should make sure this works without a callout special case
+      if (note.classList.contains("callout")) {
+        return note.outerHTML;
+      } else {
+        return note.innerHTML;
+      }
+    }
+  }
+  for (var i=0; i<xrefs.length; i++) {
+    const xref = xrefs[i];
+    tippyHover(xref, undefined, function(instance) {
+      instance.disable();
+      let url = xref.getAttribute('href');
+      let hash = undefined; 
+      if (url.startsWith('#')) {
+        hash = url;
+      } else {
+        try { hash = new URL(url).hash; } catch {}
+      }
+      if (hash) {
+        const id = hash.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note !== null) {
+          try {
+            const html = processXRef(id, note.cloneNode(true));
+            instance.setContent(html);
+          } finally {
+            instance.enable();
+            instance.show();
+          }
+        } else {
+          // See if we can fetch this
+          fetch(url.split('#')[0])
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.getElementById(id);
+            if (note !== null) {
+              const html = processXRef(id, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      } else {
+        // See if we can fetch a full url (with no hash to target)
+        // This is a special case and we should probably do some content thinning / targeting
+        fetch(url)
+        .then(res => res.text())
+        .then(html => {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, "text/html");
+          const note = htmlDoc.querySelector('main.content');
+          if (note !== null) {
+            // This should only happen for chapter cross references
+            // (since there is no id in the URL)
+            // remove the first header
+            if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+              note.children[0].remove();
+            }
+            const html = processXRef(null, note);
+            instance.setContent(html);
+          } 
+        }).finally(() => {
+          instance.enable();
+          instance.show();
+        });
+      }
+    }, function(instance) {
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            div.style.left = 0;
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+        // Handle positioning of the toggle
+    window.addEventListener(
+      "resize",
+      throttle(() => {
+        elRect = undefined;
+        if (selectedAnnoteEl) {
+          selectCodeLines(selectedAnnoteEl);
+        }
+      }, 10)
+    );
+    function throttle(fn, ms) {
+    let throttle = false;
+    let timer;
+      return (...args) => {
+        if(!throttle) { // first call gets through
+            fn.apply(this, args);
+            throttle = true;
+        } else { // all the others get throttled
+            if(timer) clearTimeout(timer); // cancel #2
+            timer = setTimeout(() => {
+              fn.apply(this, args);
+              timer = throttle = false;
+            }, ms);
+        }
+      };
+    }
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+
+<footer class="footer"><div class="nav-footer"><div class="nav-footer-center"><div class="toc-actions d-sm-block d-md-none"><ul><li><a href="https://github.com/fastai/fastai/issues/new" class="toc-action"><i class="bi bi-github"></i>Report an issue</a></li></ul></div></div></div></footer></body></html>

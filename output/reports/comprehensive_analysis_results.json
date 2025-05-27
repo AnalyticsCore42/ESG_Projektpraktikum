@@ -1,0 +1,73 @@
+{
+  "company_emissions_analysis": {
+    "id_columns": [
+      "ISSUERID",
+      "ISSUER_NAME_company",
+      "ISSUER_TICKER_company",
+      "ISSUER_CUSIP_company",
+      "ISSUER_SEDOL_company",
+      "ISSUER_ISIN_company",
+      "ISSUER_CNTRY_DOMICILE_company",
+      "ISSUER_NAME_emissions",
+      "ISSUER_TICKER_emissions",
+      "ISSUER_CUSIP_emissions",
+      "ISSUER_SEDOL_emissions",
+      "ISSUER_ISIN_emissions",
+      "ISSUER_CNTRY_DOMICILE_emissions"
+    ],
+    "numerical": [
+      "ISSUER_CUSIP_company",
+      "ISSUER_SEDOL_company",
+      "MarketCap_USD",
+      "NACE_CLASS_CODE",
+      "SALES_USD_YEAR",
+      "SALES_USD_RECENT",
+      "ISSUER_CUSIP_emissions",
+      "ISSUER_SEDOL_emissions",
+      "CARBON_EMISSIONS_EVIC_SCOPE_1_INTEN",
+      "CARBON_EMISSIONS_SCOPE_1_INTEN",
+      "CARBON_EMISSIONS_SCOPE_12",
+      "CARBON_EMISSIONS_EVIC_SCOPE_12_INTEN",
+      "CARBON_EMISSIONS_SCOPE_12_INTEN",
+      "CARBON_EMISSIONS_INTENSITY_YEAR",
+      "CARBON_EMISSIONS_SCOPE_2",
+      "CARBON_EMISSIONS_EVIC_SCOPE_2_INTEN",
+      "CARBON_EMISSIONS_SCOPE_2_INTEN",
+      "CARBON_EMISSIONS_SCOPE_3",
+      "EVIC_EUR",
+      "CBN_EVIC_PUB_DATE",
+      "EVIC_USD_RECENT",
+      "EVIC_USD_YEAR",
+      "CARBON_SCOPE_12_INTEN_3Y_AVG",
+      "CARBON_SCOPE_12_INTEN_3Y_GICS_IND_PEER_RATIO",
+      "CARBON_SCOPE_12_INTEN_3Y_GIC_CAGR"
+    ],
+    "categorical": [
+      "ISSUER_CNTRY_DOMICILE_company",
+      "NACE_CLASS_DESCRIPTION",
+      "ISSUER_CNTRY_DOMICILE_emissions",
+      "CARBON_EMISSIONS_SCOPE_1_KEY",
+      "CARBON_EMISSIONS_SCOPE_12_KEY",
+      "CARBON_EMISSIONS_SCOPE_2_KEY"
+    ],
+    "text": [
+      "ISSUERID",
+      "ISSUER_NAME_company",
+      "ISSUER_TICKER_company",
+      "ISSUER_ISIN_company",
+      "ISSUER_NAME_emissions",
+      "ISSUER_TICKER_emissions",
+      "ISSUER_ISIN_emissions"
+    ]
+  },
+  "programs1_analysis": null,
+  "programs2_analysis": null,
+  "targets_analysis": null,
+  "visualizations_generated": [
+    "emissions_target_relations",
+    "target_effectiveness",
+    "context_plots",
+    "findings_plots",
+    "programs_analysis"
+  ]
+}
